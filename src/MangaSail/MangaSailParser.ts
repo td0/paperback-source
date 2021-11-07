@@ -1,6 +1,8 @@
 import {
+  Manga,
   MangaTile,
   SearchRequest,
+  MangaStatus,
 } from 'paperback-extensions-common'
 import { TITLE_THUMBNAIL_PATH } from './MangaSailHelper'
 
@@ -18,6 +20,32 @@ export const parseSearch = ($: CheerioStatic): MangaTile[] => {
       title: createIconText({text: $(item).text()}),
       image: `https://${TITLE_THUMBNAIL_PATH}/${id}`
     })
+  })
+}
+
+export const parseMangaDetails  = ($: CheerioStatic, mangaId: string): Manga => {
+  const title = $('h1.page-header').text()
+  const image = $('.field-name-field-image2 img').attr('src')
+  let status
+  switch ($('.field-name-field-status div.field-item.even').text()) {
+    case 'Ongoing':
+      status = MangaStatus.ONGOING
+      break
+    case 'Complete':
+      status = MangaStatus.COMPLETED
+      break
+    default:
+      status = MangaStatus.UNKNOWN
+  }
+  const author = $('.field-name-field-author div.field-item.even').text()
+  return createManga({
+    id: mangaId,
+    titles: [title],
+    image,
+    status,
+    hentai: false,
+    author: author,
+    desc: description,
   })
 }
 
