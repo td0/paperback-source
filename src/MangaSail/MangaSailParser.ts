@@ -23,29 +23,28 @@ export const parseSearch = ($: CheerioStatic): MangaTile[] => {
   })
 }
 
-export const parseMangaDetails  = ($: CheerioStatic, mangaId: string): Manga => {
-  const title = $('h1.page-header').text()
-  const image = $('.field-name-field-image2 img').attr('src')
-  let status
-  switch ($('.field-name-field-status div.field-item.even').text()) {
-    case 'Ongoing':
-      status = MangaStatus.ONGOING
+export const parseDetailField = ($: CheerioStatic, field: string): string => {
+  let result
+  switch(field){
+    case 'field_image2':
+      result = $('img.img-responsive').attr('src')
       break
-    case 'Complete':
-      status = MangaStatus.COMPLETED
+    case 'field_status':
+    case 'field_author':
+    case 'field_artist':
+      result = $('div.field-item.even').text()
       break
-    default:
-      status = MangaStatus.UNKNOWN
+    case 'body':
+      result = $('div.field-item.even p').text()?.split('summary: ').pop() ?? ''
+      break
+    case 'field_genres':
+      result = $('a').text()
   }
-  const author = $('.field-name-field-author div.field-item.even').text()
-  return createManga({
-    id: mangaId,
-    titles: [title],
-    image,
-    status,
-    hentai: false,
-    author: author,
-    desc: description,
-  })
+  if (field === 'field_status') {
+    if (result === 'Ongoing') result = MangaStatus.ONGOING
+    else if (result === 'Complete') result = MangaStatus.COMPLETED
+    else result = MangaStatus.UNKNOWN
+  }
+  return result ?? ''
 }
 

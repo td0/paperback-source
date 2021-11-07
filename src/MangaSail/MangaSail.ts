@@ -21,9 +21,11 @@ import {
   Request,
   Response,
   TagType,
+  MangaStatus,
 } from 'paperback-extensions-common'
 import {
   generateSearch,
+  parseDetailField,
   parseSearch,
 } from './MangaSailParser'
 
@@ -113,9 +115,19 @@ export class MangaSail extends Source {
     })
     const response = await this.requestManager.schedule(request, 1)
     const $ = this.cheerio.load(response.data)
-    console.log($)
-    // return parseMangaDetails($, mangaId);
-    return {titles: [''], image: '', rating: 0, status: 0}
+    const nodeId = $('[rel=shortlink]').attr('href')?.split('/').pop() ?? ''
+    const status = await this.getDetailField(nodeId, 'field_status') as unknown
+
+    return createManga({
+      id: mangaId,
+      titles: [$('h1.page-header').text()],
+      image: await this.getDetailField(nodeId, 'field_image2'),
+      status: status as MangaStatus,
+      hentai: false,
+      author: await this.getDetailField(nodeId, 'field_author'),
+      artist: await this.getDetailField(nodeId, 'field_artist'),
+      desc: await this.getDetailField(nodeId, 'body'),
+    })
   }
 
   async getDetailField(nodeId: string, field: string): Promise<string> {
@@ -132,8 +144,7 @@ export class MangaSail extends Source {
     response = typeof response.data === 'string' ? JSON.parse(response.data) : response.data
     const data = Object(response)
     const $ = this.cheerio.load(data.field[`${nodeId}:full:en`])
-    const imgUrl = $('img.img-responsive').attr('src')
-    return imgUrl ?? ''
+    return parseDetailField($, field)
   }
 
   async getChapters(mangaId: string): Promise<Chapter[]> {
