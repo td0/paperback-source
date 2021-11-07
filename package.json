@@ -4,6 +4,10 @@
   "description": "td0's extension for paperback",
   "main": "index.js",
   "scripts": {
+    "start": "tsc && node dist/api.js",
+    "build": "tsc",
+    "test": "node_modules/.bin/mocha --timeout 300000 -r ts-node/register src/**/*.test.ts",
+    "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test",
     "bundle": "paperback bundle",
     "serve": "paperback serve"
   },
@@ -34,10 +38,9 @@
   "dependencies": {
     "cheerio": "^0.22.0",
     "paperback-cli": "^1.4.0",
-    "paperback-extensions-common": "^2.1.11",
+    "paperback-extensions-common": "^4.3.5",
     "ts-node": "^10.2.1",
-    "tsify": "^4.0.2",
-    "typescript": "^3.9.6"
+    "tsify": "^4.0.2"
   },
   "extSources": {
     "MangaSail": {
