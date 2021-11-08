@@ -7,7 +7,6 @@ import {
   METHOD,
   NAME,
   VERSION,
-  TITLE_THUMBNAIL_PATH,
 } from './MangaSailHelper'
 import {
   Source,
@@ -19,7 +18,6 @@ import {
   PagedResults,
   SourceInfo,
   Request,
-  Response,
   TagType,
   MangaStatus,
 } from 'paperback-extensions-common'
