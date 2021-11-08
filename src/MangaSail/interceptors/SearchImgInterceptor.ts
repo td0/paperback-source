@@ -1,6 +1,7 @@
 import {
   Request,
   RequestInterceptor,
+  RequestManager,
   Response,
 } from 'paperback-extensions-common'
 import {
@@ -11,28 +12,24 @@ import {
 } from '../MangaSailHelper'
 
 export class SearchImgInterceptor implements RequestInterceptor {
-  cheerio: CheerioAPI
-  constructor(cheerio: CheerioAPI){
-    this.cheerio = cheerio
-  }
-
-  requestManager = createRequestManager({
-    requestsPerSecond: 5,
-    requestTimeout: 20000,
-  })
+  constructor(
+    private cheerio: CheerioAPI, 
+    private requestManager: () => RequestManager
+  ){}
 
   async interceptRequest(request: Request): Promise<Request> {
     try {
       if (request.url.includes(TITLE_THUMBNAIL_PATH)) {
         const id = request.url.split(TITLE_THUMBNAIL_PATH).pop() ?? ''
-        const nodeRes = await this.requestManager.schedule(createRequestObject({
-          url: `${BASE_DOMAIN}/content${id}`,
-          method: METHOD,
-          headers: {
-            ...request.headers,
-            ...HEADERS
-          }
-        }), 1)
+        const nodeRes = await this.requestManager()
+          .schedule(createRequestObject({
+            url: `${BASE_DOMAIN}/content${id}`,
+            method: METHOD,
+            headers: {
+              ...request.headers,
+              ...HEADERS
+            }
+          }), 1)
         const $ = this.cheerio.load(nodeRes.data)
         const nodeId = $('[rel=shortlink]').attr('href')?.split('/').pop() ?? ''
         console.log(nodeId)
