@@ -28,6 +28,8 @@ import {
   parseDetailField,
   parseSearch,
 } from './MangaSailParser'
+import { MangaSailInterceptor } from './MangaSailInterceptor'
+import { SearchImgInterceptor } from './interceptors/SearchImgInterceptor'
 
 export const MangaSailInfo: SourceInfo = {
   version: VERSION,
@@ -53,30 +55,9 @@ export class MangaSail extends Source {
   requestManager = createRequestManager({
     requestsPerSecond: 5,
     requestTimeout: 20000,
-    interceptor: {
-      interceptRequest: async (request: Request) : Promise<Request> => {
-        try {
-          if (request.url.includes(TITLE_THUMBNAIL_PATH)) {
-            const id = request.url.split(TITLE_THUMBNAIL_PATH).pop() ?? ''
-            const nodeRes = await this.requestManager.schedule(createRequestObject({
-              url: `${BASE_DOMAIN}/content${id}`,
-              method: METHOD,
-            }), 1)
-            const $ = this.cheerio.load(nodeRes.data)
-            const nodeId = $('[rel=shortlink]').attr('href')?.split('/').pop() ?? ''
-            const imgUrl = await this.getDetailField(nodeId, 'field_image2')
-            request.url = imgUrl ?? request.url
-          }
-        } catch (err: any) {
-          console.warn(err)
-        }
-        return request
-      },
-
-      interceptResponse: async (response: Response) : Promise<Response> => {
-        return Promise.resolve(response)
-      },
-    }
+    interceptor: new MangaSailInterceptor([
+      new SearchImgInterceptor(this.cheerio)
+    ])
   })
   
   override getMangaShareUrl(mangaId: string): string { 
