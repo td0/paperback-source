@@ -7,16 +7,19 @@ import {
 } from 'paperback-extensions-common'
 import { 
   parseDetailField,
+  parseNodeId,
 } from '../MangaSailParser'
 import { 
   mangaDetailFieldsMapper
 } from '../MangaSailHelper'
 import {
   BASE_DOMAIN,
+  HEADERS,
+  HEADER_REF_SEARCH_KEY,
+  HEADER_REF_CHAPTERS_KEY,
   MANGA_DETAILS_PATH,
   MANGA_DETAILS_FIELDS,
   METHOD,
-  HEADERS,
 } from '../MangaSailHelper'
 
 export class MangaDetailsInterceptor implements RequestInterceptor {
@@ -31,12 +34,17 @@ export class MangaDetailsInterceptor implements RequestInterceptor {
 
   async interceptResponse(response: Response): Promise<Response> {
     const { request } = response
-    if (request.url.includes(MANGA_DETAILS_PATH)) {
-      const isFromSearch = !!request.headers?.['X-ref-search'] 
+    // if not manga detail path, return the original response
+    if (!request.url.includes(MANGA_DETAILS_PATH)) return response
+    
+    // if the request has no Chapter List ref header, then fetch manga details
+    if (!request.headers?.[HEADER_REF_CHAPTERS_KEY]) {
+      const $ = this.cheerio.load(response.data)
+      const isFromSearch = !!request.headers?.[HEADER_REF_SEARCH_KEY] 
       const fields = isFromSearch
         ? MANGA_DETAILS_FIELDS.slice(0,1)
         : MANGA_DETAILS_FIELDS
-      const nodeId = this.getNodeId(response)
+      const nodeId = parseNodeId($)
       const results = nodeId && await Promise.all(fields.map((field: string) => (
         this.getDetailField(nodeId, field)
       ))) || []
@@ -52,11 +60,6 @@ export class MangaDetailsInterceptor implements RequestInterceptor {
   /** 
    *  private helper methods
    **/ 
-  private getNodeId (response: Response): string {
-    const $ = this.cheerio.load(response.data)
-    return $('[rel=shortlink]').attr('href')?.split('/').pop() ?? ''
-  }
-
   private async getDetailField(nodeId: string, field: string): Promise<string> {
     try {
       const request = createRequestObject({
