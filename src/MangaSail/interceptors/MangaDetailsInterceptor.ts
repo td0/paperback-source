@@ -26,12 +26,6 @@ export class MangaDetailsInterceptor implements RequestInterceptor {
   ){}
 
   async interceptRequest(request: Request): Promise<Request> {
-    if (request.url.includes(MANGA_DETAILS_PATH)) {
-      request.headers ={
-        ...request.headers,
-        accept: 'text/html,application/xhtml+xml,application/xml,application/json,text/javascript;q=0.9,*/*;q=0.8'
-      }
-    }
     return request
   }
 
@@ -83,7 +77,7 @@ export class MangaDetailsInterceptor implements RequestInterceptor {
       return parseDetailField($, field)
     } catch(err: unknown) {
       console.error(err)
-      return ''
+      throw new Error(err as string ?? 'getDetailField Error')
     }
   }
 
