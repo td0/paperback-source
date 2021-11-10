@@ -2,8 +2,9 @@ import {
   MangaTile,
   SearchRequest,
   MangaStatus,
+  Response,
 } from 'paperback-extensions-common'
-import { TITLE_THUMBNAIL_PATH } from './MangaSailHelper'
+import { INTERCEPT_SEARCH_IMG } from './MangaSailHelper'
 
 export const generateSearch = (query: SearchRequest): string => {
   const search: string = query.title ?? ''
@@ -17,7 +18,7 @@ export const parseSearch = ($: CheerioStatic): MangaTile[] => {
     return createMangaTile( {
       id,
       title: createIconText({text: $(item).text()}),
-      image: `https://${TITLE_THUMBNAIL_PATH}/${id}`
+      image: `https://${INTERCEPT_SEARCH_IMG}/${id}`
     })
   })
 }
@@ -37,7 +38,12 @@ export const parseDetailField = ($: CheerioStatic, field: string): string => {
       result = $('div.field-item.even p').text()?.split('summary: ').pop() ?? ''
       break
     case 'field_genres':
-      result = $('a').text()
+      result = $('a').toArray().reduce((
+        tags: string,
+        $tag: CheerioStatic
+      ) => {
+        return tags + `,${$tag.text()}`
+      }, '')
   }
   if (field === 'field_status') {
     if (result === 'Ongoing') result = MangaStatus.ONGOING
@@ -45,5 +51,12 @@ export const parseDetailField = ($: CheerioStatic, field: string): string => {
     else result = MangaStatus.UNKNOWN
   }
   return result ?? ''
+}
+
+export const parseResponseObject = (response: Response): Record<string, unknown> => {
+  const parsed = typeof response.data === 'string'
+    ? JSON.parse(response.data)
+    : response.data
+  return Object(parsed)
 }
 
