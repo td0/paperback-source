@@ -6,14 +6,20 @@ import {
   Manga,
   Chapter,
   LanguageCode,
+  ChapterDetails,
 } from 'paperback-extensions-common'
 import { INTERCEPT_SEARCH_IMG } from './MangaSailHelper'
 
 export const parseResponseObject = (response: Response): Record<string, unknown> => {
-  const parsed = typeof response.data === 'string'
-    ? JSON.parse(response.data)
-    : response.data
-  return Object(parsed)
+  try {
+    const parsed = typeof response.data === 'string'
+      ? JSON.parse(response.data)
+      : response.data
+    return Object(parsed)
+  } catch(err: unknown) {
+    console.error(err)
+    throw new Error('Error parsing object ' + err)
+  } 
 }
 
 export const generateSearch = (query: SearchRequest): string => {
@@ -81,7 +87,10 @@ export const parseDetailField = ($: CheerioStatic, field: string): string => {
   return result ?? ''
 }
 
-export const parseChapterList = ($: CheerioStatic, mangaId: string): Chapter[] => {
+export const parseChapterList = (
+  $: CheerioStatic,
+  mangaId: string,
+): Chapter[] => {
   const chapterList = [] as Chapter[]
   const $list = $('tbody tr').toArray()
   $list.forEach(($chapter: CheerioStatic) => {
@@ -98,4 +107,30 @@ export const parseChapterList = ($: CheerioStatic, mangaId: string): Chapter[] =
     )
   })
   return chapterList
+}
+
+export const parseChapterDetails = (
+  $: CheerioStatic,
+  mangaId: string,
+  id: string,
+): ChapterDetails => {
+  const $script = $('script').toArray().filter(($s: CheerioStatic) => (
+    $s.children[0]?.data
+    && $s.children[0].data.includes('paths')
+  ))[0]
+  const strData = $script?.children[0]?.data
+  const strPages = strData?.split('paths":')?.pop()?.split(',"count_p')?.shift()
+  let pages = []
+  try {
+    pages = JSON.parse(strPages)
+  } catch(err: unknown) {
+    console.error(err)
+    throw new Error('Error parsing pages ' + err)
+  } 
+  return createChapterDetails({
+    mangaId,
+    id,
+    pages,
+    longStrip: false
+  })
 }
