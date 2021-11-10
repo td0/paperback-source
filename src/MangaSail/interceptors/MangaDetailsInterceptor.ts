@@ -46,7 +46,7 @@ export class MangaDetailsInterceptor implements RequestInterceptor {
       const results = nodeId && await Promise.all(fields.map((field: string) => (
         this.getDetailField(nodeId, field)
       ))) || []
-      response.rawData = this.generateMangaData(
+      response.rawData = this.generateRawMangaData(
         response,
         results,
         isFromSearch
@@ -87,7 +87,7 @@ export class MangaDetailsInterceptor implements RequestInterceptor {
     }
   }
 
-  private generateMangaData (
+  private generateRawMangaData (
     response: Response,
     results: string[],
     isFromSearch: boolean
