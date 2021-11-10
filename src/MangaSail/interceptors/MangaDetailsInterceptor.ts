@@ -39,7 +39,10 @@ export class MangaDetailsInterceptor implements RequestInterceptor {
     if (!request.url.includes(MANGA_DETAILS_PATH)) return response
     
     // if the request has Manga Detail or Search Manga ref header
-    if (request.headers?.[HEADER_REF_DETAILS_KEY] || request.headers?.[HEADER_REF_SEARCH_KEY]) {
+    if (
+      request.headers?.[HEADER_REF_DETAILS_KEY]
+      || request.headers?.[HEADER_REF_SEARCH_KEY]
+    ) {
       const $ = this.cheerio.load(response.data)
       const isFromSearch = !!request.headers?.[HEADER_REF_SEARCH_KEY] 
       const fields = isFromSearch
