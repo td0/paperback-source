@@ -5,17 +5,11 @@ import {
 } from 'paperback-extensions-common'
 
 export class MangaSailInterceptor implements RequestInterceptor {
-  interceptors: RequestInterceptor[]
-  constructor(interceptors: RequestInterceptor[]) {
-    this.interceptors = interceptors
-  }
+  constructor(
+    private interceptors: RequestInterceptor[]
+  ){}
 
   async interceptRequest(request: Request): Promise<Request> {
-
-    request.headers = {
-      ...(request.headers ?? {}),
-    }
-
     for (const interceptor of this.interceptors) {
       request = await interceptor.interceptRequest(request)
     }
