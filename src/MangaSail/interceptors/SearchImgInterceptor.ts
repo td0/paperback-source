@@ -5,37 +5,42 @@ import {
   Response,
 } from 'paperback-extensions-common'
 import {
-  BASE_DOMAIN,
-  METHOD,
   HEADERS,
-  TITLE_THUMBNAIL_PATH,
+  HEADER_REF_SEARCH_KEY,
+  INTERCEPT_SEARCH_IMG,
+  MANGA_DETAILS_PATH,
+  METHOD,
 } from '../MangaSailHelper'
+import {
+  parseResponseObject,
+} from '../MangaSailParser'
 
 export class SearchImgInterceptor implements RequestInterceptor {
   constructor(
-    private cheerio: CheerioAPI, 
     private requestManager: () => RequestManager
   ){}
 
   async interceptRequest(request: Request): Promise<Request> {
     try {
-      if (request.url.includes(TITLE_THUMBNAIL_PATH)) {
-        const id = request.url.split(TITLE_THUMBNAIL_PATH).pop() ?? ''
-        const nodeRes = await this.requestManager()
+      if (request.url.includes(INTERCEPT_SEARCH_IMG)) {
+        const id = request.url.split(INTERCEPT_SEARCH_IMG).pop() ?? ''
+        const response = await this.requestManager()
           .schedule(createRequestObject({
-            url: `${BASE_DOMAIN}/content${id}`,
+            url: `${MANGA_DETAILS_PATH}${id}`,
             method: METHOD,
             headers: {
-              ...request.headers,
-              ...HEADERS
+              ...HEADERS,
+              [HEADER_REF_SEARCH_KEY]: '1',
             }
           }), 1)
-        const $ = this.cheerio.load(nodeRes.data)
-        const nodeId = $('[rel=shortlink]').attr('href')?.split('/').pop() ?? ''
-        console.log(nodeId)
+          
+        const parsedData = parseResponseObject(response)
+        const imgUrl = parsedData?.image as string ?? ''
+        request.url = imgUrl
       }
-    } catch (err: any) {
-      console.warn(err)
+    } catch (err: unknown) {
+      console.error(err)
+      throw new Error(err as string ?? 'search error')
     }
     return request
   }
