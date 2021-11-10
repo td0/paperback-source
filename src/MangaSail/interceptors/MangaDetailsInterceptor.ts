@@ -8,6 +8,7 @@ import {
 import { 
   parseDetailField,
   parseNodeId,
+  parseResponseObject,
 } from '../MangaSailParser'
 import { 
   mangaDetailFieldsMapper
@@ -71,12 +72,9 @@ export class MangaDetailsInterceptor implements RequestInterceptor {
           'Content-type': 'application/x-www-form-urlencoded',
         }
       })
-      let response = await this.requestManager().schedule(request, 1)
-      response = typeof response.data === 'string' 
-        ? JSON.parse(response.data)
-        : response.data
-      const data = Object(response)
-      const $ = this.cheerio.load(data.field[`${nodeId}:full:en`])
+      const response = await this.requestManager().schedule(request, 1)
+      const data = Object(parseResponseObject(response))
+      const $ = this.cheerio.load(data?.field[`${nodeId}:full:en`])
       return parseDetailField($, field)
     } catch(err: unknown) {
       console.error(err)
