@@ -14,7 +14,6 @@ export const MANGA_DETAILS_FIELDS = [
   'field_status',
   'field_artist',
   'field_author',
-  'field_genres',
   'body',
 ]
 export const INTERCEPT_SEARCH_IMG = 'search_image_path'
