@@ -3,8 +3,16 @@ import {
   SearchRequest,
   MangaStatus,
   Response,
+  Manga,
 } from 'paperback-extensions-common'
 import { INTERCEPT_SEARCH_IMG } from './MangaSailHelper'
+
+export const parseResponseObject = (response: Response): Record<string, unknown> => {
+  const parsed = typeof response.data === 'string'
+    ? JSON.parse(response.data)
+    : response.data
+  return Object(parsed)
+}
 
 export const generateSearch = (query: SearchRequest): string => {
   const search: string = query.title ?? ''
@@ -23,6 +31,21 @@ export const parseSearch = ($: CheerioStatic): MangaTile[] => {
   })
 }
 
+export const parseMangaData = (response: Response): Manga => {
+  const res = parseResponseObject(response)
+  return createManga({
+    id: res?.id as string ?? '',
+    titles: res?.titles as string[] ?? [''],
+    image: res?.image as string ?? '',
+    status: res?.status as MangaStatus ?? MangaStatus.UNKNOWN,
+    artist: res?.artist as string ?? '',
+    author: res?.author as string ?? '',
+    desc: res?.desc as string ?? '',
+    hentai: res?.hentai as boolean ?? false,
+    lastUpdate: new Date(res?.lastUpdate as string ?? '')
+  })
+}
+
 export const parseDetailField = ($: CheerioStatic, field: string): string => {
   let result
   switch(field){
@@ -35,15 +58,9 @@ export const parseDetailField = ($: CheerioStatic, field: string): string => {
       result = $('div.field-item.even').text()
       break
     case 'body':
-      result = $('div.field-item.even p').text()?.split('summary: ').pop() ?? ''
+      result = $('div.field-item.even p').text()?.split('summary:').pop() ?? ''
+      result = result.trim()
       break
-    case 'field_genres':
-      result = $('a').toArray().reduce((
-        tags: string,
-        $tag: CheerioStatic
-      ) => {
-        return tags + `,${$tag.text()}`
-      }, '')
   }
   if (field === 'field_status') {
     if (result === 'Ongoing') result = MangaStatus.ONGOING
@@ -52,11 +69,3 @@ export const parseDetailField = ($: CheerioStatic, field: string): string => {
   }
   return result ?? ''
 }
-
-export const parseResponseObject = (response: Response): Record<string, unknown> => {
-  const parsed = typeof response.data === 'string'
-    ? JSON.parse(response.data)
-    : response.data
-  return Object(parsed)
-}
-
