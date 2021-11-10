@@ -30,7 +30,7 @@ export class SearchImgInterceptor implements RequestInterceptor {
             method: METHOD,
             headers: {
               ...HEADERS,
-              [HEADER_REF_SEARCH_KEY]: '1',
+              [HEADER_REF_SEARCH_KEY]: id,
             }
           }), 1)
           
