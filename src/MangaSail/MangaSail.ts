@@ -4,11 +4,11 @@ import {
   MANGA_DETAILS_PATH,
   DESCRIPTION,
   HEADERS,
-  HEADER_REF_CHAPTERS_KEY,
   HOMEPAGE,
   METHOD,
   NAME,
   VERSION,
+  HEADER_REF_DETAILS_KEY,
 } from './MangaSailHelper'
 import {
   Source,
@@ -101,7 +101,10 @@ export class MangaSail extends Source {
     const request = createRequestObject({
       url: `${MANGA_DETAILS_PATH}/${mangaId}`,
       method: METHOD,
-      headers: HEADERS
+      headers: {
+        ...HEADERS,
+        [HEADER_REF_DETAILS_KEY]: mangaId
+      }
     })
     const response = await this.requestManager.schedule(request, 1)
     const mangaData = parseMangaData(response)
@@ -112,10 +115,7 @@ export class MangaSail extends Source {
     const request = createRequestObject({
       url: `${MANGA_DETAILS_PATH}/${mangaId}`,
       method: METHOD,
-      headers: {
-        ...HEADERS,
-        [HEADER_REF_CHAPTERS_KEY]: mangaId,
-      }
+      headers: HEADERS
     })
     const response = await this.requestManager.schedule(request, 1)
     const $ = this.cheerio.load(response.data)
@@ -124,7 +124,7 @@ export class MangaSail extends Source {
 
   async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
     const request = createRequestObject({
-      url: `${BASE_DOMAIN}/manga/${mangaId}/${chapterId}`,
+      url: `${MANGA_DETAILS_PATH}/${chapterId}`,
       method: METHOD,
       headers: HEADERS
     })

@@ -19,8 +19,7 @@ export const MANGA_DETAILS_FIELDS = [
 export const INTERCEPT_SEARCH_IMG = 'search_image_path'
 export const HEADERS = { 'X-Authcache': '1' }
 export const HEADER_REF_SEARCH_KEY = 'X-ref-search'
-export const HEADER_REF_DETAIL_KEY = 'X-ref-detail'
-export const HEADER_REF_CHAPTERS_KEY = 'X-ref-chapters'
+export const HEADER_REF_DETAILS_KEY = 'X-ref-details'
 
 // helper methods
 export const mangaDetailFieldsMapper = (

@@ -16,7 +16,7 @@ import {
   BASE_DOMAIN,
   HEADERS,
   HEADER_REF_SEARCH_KEY,
-  HEADER_REF_CHAPTERS_KEY,
+  HEADER_REF_DETAILS_KEY,
   MANGA_DETAILS_PATH,
   MANGA_DETAILS_FIELDS,
   METHOD,
@@ -37,8 +37,8 @@ export class MangaDetailsInterceptor implements RequestInterceptor {
     // if not manga detail path, return the original response
     if (!request.url.includes(MANGA_DETAILS_PATH)) return response
     
-    // if the request has no Chapter List ref header, then fetch manga details
-    if (!request.headers?.[HEADER_REF_CHAPTERS_KEY]) {
+    // if the request has Manga Detail or Search Manga ref header
+    if (request.headers?.[HEADER_REF_DETAILS_KEY] || request.headers?.[HEADER_REF_SEARCH_KEY]) {
       const $ = this.cheerio.load(response.data)
       const isFromSearch = !!request.headers?.[HEADER_REF_SEARCH_KEY] 
       const fields = isFromSearch
