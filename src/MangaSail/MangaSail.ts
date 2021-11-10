@@ -1,35 +1,36 @@
 import {
   AUTHOR,
   BASE_DOMAIN,
-  MANGA_DETAILS_PATH,
   DESCRIPTION,
   HEADERS,
+  HEADER_REF_DETAILS_KEY,
   HOMEPAGE,
+  MANGA_DETAILS_PATH,
   METHOD,
   NAME,
   VERSION,
-  HEADER_REF_DETAILS_KEY,
 } from './MangaSailHelper'
 import {
-  Source,
-  Manga,
   Chapter,
   ChapterDetails,
   ContentRating,
-  SearchRequest,
+  Manga,
   PagedResults,
-  SourceInfo,
   Request,
+  SearchRequest,
+  Source,
+  SourceInfo,
   TagType,
 } from 'paperback-extensions-common'
 import {
-  generateSearch,
-  parseSearch,
-  parseMangaData,
+  parseChapterDetails,
   parseChapterList,
+  parseMangaData,
+  parseSearch,
+  generateSearch,
 } from './MangaSailParser'
 import { MangaSailInterceptor } from './MangaSailInterceptor'
-import {
+import { 
   MangaDetailsInterceptor,
   SearchImgInterceptor,
 } from './interceptors'
@@ -107,8 +108,7 @@ export class MangaSail extends Source {
       }
     })
     const response = await this.requestManager.schedule(request, 1)
-    const mangaData = parseMangaData(response)
-    return mangaData
+    return parseMangaData(response)
   }
 
   async getChapters(mangaId: string): Promise<Chapter[]> {
@@ -122,7 +122,10 @@ export class MangaSail extends Source {
     return parseChapterList($, mangaId)
   }
 
-  async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
+  async getChapterDetails(
+    mangaId: string,
+    chapterId: string
+  ): Promise<ChapterDetails> {
     const request = createRequestObject({
       url: `${MANGA_DETAILS_PATH}/${chapterId}`,
       method: METHOD,
@@ -130,8 +133,6 @@ export class MangaSail extends Source {
     })
     const response = await this.requestManager.schedule(request, 1)
     const $ = this.cheerio.load(response.data, { xmlMode: false })
-    console.log($)
-    // return parseChapterDetails($, mangaId, chapterId);
-    return {id: '', mangaId: '', longStrip: false, pages: ['mock']}
+    return parseChapterDetails($, mangaId, chapterId)
   }
 }
