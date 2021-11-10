@@ -1,6 +1,7 @@
 import {
   AUTHOR,
   BASE_DOMAIN,
+  MANGA_DETAILS_PATH,
   DESCRIPTION,
   HEADERS,
   HOMEPAGE,
@@ -19,15 +20,17 @@ import {
   SourceInfo,
   Request,
   TagType,
-  MangaStatus,
 } from 'paperback-extensions-common'
 import {
   generateSearch,
-  parseDetailField,
   parseSearch,
+  parseMangaData,
 } from './MangaSailParser'
 import { MangaSailInterceptor } from './MangaSailInterceptor'
-import { SearchImgInterceptor } from './interceptors/SearchImgInterceptor'
+import {
+  MangaDetailsInterceptor,
+  SearchImgInterceptor,
+} from './interceptors'
 
 export const MangaSailInfo: SourceInfo = {
   version: VERSION,
@@ -41,7 +44,7 @@ export const MangaSailInfo: SourceInfo = {
   sourceTags: [
     {
       text: 'Cloudflare',
-      type: TagType.YELLOW
+      type: TagType.RED
     }
   ]
 }
@@ -71,6 +74,12 @@ export class MangaSail extends Source {
     })
   }
 
+  CloudFlareError(status: unknown): void {
+    if(status == 503) {
+      throw new Error('CLOUDFLARE BYPASS ERROR:\nPlease go to Settings > Sources > <\\The name of this source\\> and press Cloudflare Bypass')
+    }
+  }
+
   async getSearchResults(query: SearchRequest): Promise<PagedResults> {
     const search = generateSearch(query)
     const request = createRequestObject({
@@ -80,7 +89,6 @@ export class MangaSail extends Source {
     })
     const response = await this.requestManager.schedule(request, 1)
     const $ = this.cheerio.load(response.data)
-
     const results = parseSearch($)
     return createPagedResults({
       results,
@@ -89,42 +97,13 @@ export class MangaSail extends Source {
 
   async getMangaDetails(mangaId: string): Promise<Manga> {
     const request = createRequestObject({
-      url: `${BASE_DOMAIN}/content/${mangaId}`,
+      url: `${MANGA_DETAILS_PATH}/${mangaId}`,
       method: METHOD,
       headers: HEADERS
     })
     const response = await this.requestManager.schedule(request, 1)
-    const $ = this.cheerio.load(response.data)
-    const nodeId = $('[rel=shortlink]').attr('href')?.split('/').pop() ?? ''
-    const status = await this.getDetailField(nodeId, 'field_status') as unknown
-
-    return createManga({
-      id: mangaId,
-      titles: [$('h1.page-header').text()],
-      image: await this.getDetailField(nodeId, 'field_image2'),
-      status: status as MangaStatus,
-      hentai: false,
-      author: await this.getDetailField(nodeId, 'field_author'),
-      artist: await this.getDetailField(nodeId, 'field_artist'),
-      desc: await this.getDetailField(nodeId, 'body'),
-    })
-  }
-
-  async getDetailField(nodeId: string, field: string): Promise<string> {
-    const request = createRequestObject({
-      url: `${BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a%5Bfield%5D%5B0%5D=${nodeId}%3Afull%3Aen&r=asm/field/node/${field}&o%5Bq%5D=node/${nodeId}&v=u91mcz`,
-      method: METHOD,
-      headers: {
-        ...HEADERS,
-        'X-Requested-With': 'XMLHttpRequest',
-        'Content-type': 'application/x-www-form-urlencoded',
-      }
-    })
-    let response = await this.requestManager.schedule(request, 1)
-    response = typeof response.data === 'string' ? JSON.parse(response.data) : response.data
-    const data = Object(response)
-    const $ = this.cheerio.load(data.field[`${nodeId}:full:en`])
-    return parseDetailField($, field)
+    const mangaData = parseMangaData(response)
+    return mangaData
   }
 
   async getChapters(mangaId: string): Promise<Chapter[]> {
