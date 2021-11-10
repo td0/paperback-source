@@ -54,7 +54,8 @@ export class MangaSail extends Source {
     requestsPerSecond: 5,
     requestTimeout: 20000,
     interceptor: new MangaSailInterceptor([
-      new SearchImgInterceptor(this.cheerio, () => this.requestManager)
+      new SearchImgInterceptor(() => this.requestManager),
+      new MangaDetailsInterceptor(this.cheerio, () => this.requestManager)
     ])
   })
   
