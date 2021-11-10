@@ -4,6 +4,8 @@ import {
   MangaStatus,
   Response,
   Manga,
+  Chapter,
+  LanguageCode,
 } from 'paperback-extensions-common'
 import { INTERCEPT_SEARCH_IMG } from './MangaSailHelper'
 
@@ -17,6 +19,15 @@ export const parseResponseObject = (response: Response): Record<string, unknown>
 export const generateSearch = (query: SearchRequest): string => {
   const search: string = query.title ?? ''
   return encodeURI(search)
+}
+
+export const parseNodeId = ($: CheerioStatic): string => {
+  return $('[rel=shortlink]').attr('href')?.split('/').pop() ?? ''
+}
+
+export const parseChapterNumber = (name: string): number => {
+  const chapNum = name.match(/(\d+(\.\d+)?)(?!.*\d)/) || ['0']
+  return parseFloat(chapNum[0] as string)
 }
 
 export const parseSearch = ($: CheerioStatic): MangaTile[] => {
@@ -68,4 +79,23 @@ export const parseDetailField = ($: CheerioStatic, field: string): string => {
     else result = MangaStatus.UNKNOWN
   }
   return result ?? ''
+}
+
+export const parseChapterList = ($: CheerioStatic, mangaId: string): Chapter[] => {
+  const chapterList = [] as Chapter[]
+  const $list = $('tbody tr').toArray()
+  $list.forEach(($chapter: CheerioStatic) => {
+    const name = $('a', $chapter)?.text() ?? ''
+    chapterList.push(
+      createChapter({
+        mangaId,
+        name,
+        id: $('a', $chapter)?.attr('href')?.split('/').pop() ?? '',
+        chapNum: parseChapterNumber(name),
+        langCode: LanguageCode.ENGLISH,
+        time: new Date($('td + td', $chapter).text() ?? '' ),
+      })
+    )
+  })
+  return chapterList
 }
