@@ -1,3 +1,8 @@
+import {
+  HomeSectionType,
+  Request
+} from 'paperback-extensions-common'
+
 // Source Data
 export const VERSION = '0.0.1'
 export const METHOD = 'GET'
@@ -20,6 +25,44 @@ export const INTERCEPT_SEARCH_IMG = 'search_image_path'
 export const HEADERS = { 'X-Authcache': '1' }
 export const HEADER_REF_SEARCH_KEY = 'X-ref-search'
 export const HEADER_REF_DETAILS_KEY = 'X-ref-details'
+export const HOME_SECTIONS = [{
+  id: 'featured',
+  title: 'Featured',
+  view_more: false,
+  type: HomeSectionType.featured,
+},{
+  id: 'popular',
+  title: 'Most Popular',
+  view_more: false,
+},  {
+  id: 'latest',
+  title: 'Latest Update',
+  view_more: false,
+  type: HomeSectionType.doubleRow
+}, {
+  id: 'new_manga',
+  title: 'New Manga',
+  view_more: false,
+}]
+export const HOME_REQUESTS = [
+  {
+    request: {
+      url: BASE_DOMAIN,
+      method: METHOD,
+      headers: {}
+    } as Request,
+    sectionIds: ['featured','popular','new_manga']
+  }, {
+    request: {
+      url: `${BASE_DOMAIN}/block_refresh/showmanga/lastest_list`,
+      method: METHOD,
+      headers: {
+        'x-requested-with': 'XMLHttpRequest'
+      }
+    } as Request,
+    sectionIds: ['latest']
+  }
+]
 
 // helper methods
 export const mangaDetailFieldsMapper = (
@@ -50,7 +93,9 @@ export const mangaDetailFieldsMapper = (
       default:
         fieldKey = MANGA_DETAILS_FIELDS[idx] as string
     }
-    result[fieldKey] = field
-    return result
+    return {
+      ...result,
+      [fieldKey]: field
+    }
   }, {})
 }
