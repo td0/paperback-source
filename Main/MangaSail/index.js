@@ -2495,10 +2495,10 @@ class MangaSail extends paperback_extensions_common_1.Source {
     getHomePageSections(sectionCallback) {
         return __awaiter(this, void 0, void 0, function* () {
             // early call sectionCallback to create empty sections page & return sections data 
-            const sections = MangaSailHelper_1.HOME_SECTIONS.reduce((acc, current) => {
-                const homeSection = createHomeSection(current);
-                sectionCallback(homeSection);
-                return Object.assign(Object.assign({}, acc), { [current.id]: homeSection });
+            const sections = MangaSailHelper_1.HOME_SECTIONS
+                .reduce((acc, current) => {
+                sectionCallback(current);
+                return Object.assign(Object.assign({}, acc), { [current.id]: current });
             }, {});
             // fetch home section contents & assign it to sections
             const promises = [];
@@ -2508,6 +2508,7 @@ class MangaSail extends paperback_extensions_common_1.Source {
                     const $ = this.cheerio.load(res.data);
                     sectionIds.forEach(id => {
                         sections[id].items = (0, MangaSailParser_1.parseHomeSectionItems)($, id);
+                        sectionCallback(sections[id]);
                     });
                 }));
             });
@@ -2543,41 +2544,46 @@ exports.INTERCEPT_SEARCH_IMG = 'search_image_path';
 exports.HEADERS = { 'X-Authcache': '1' };
 exports.HEADER_REF_SEARCH_KEY = 'X-ref-search';
 exports.HEADER_REF_DETAILS_KEY = 'X-ref-details';
-exports.HOME_SECTIONS = [{
+exports.HOME_SECTIONS = [
+    createHomeSection({
         id: 'featured',
         title: 'Featured',
-        view_more: false,
         type: paperback_extensions_common_1.HomeSectionType.featured,
-    }, {
+        view_more: false,
+    }),
+    createHomeSection({
         id: 'popular',
         title: 'Most Popular',
         view_more: false,
-    }, {
+    }),
+    createHomeSection({
         id: 'latest',
         title: 'Latest Update',
+        type: paperback_extensions_common_1.HomeSectionType.doubleRow,
         view_more: false,
-        type: paperback_extensions_common_1.HomeSectionType.doubleRow
-    }, {
+    }),
+    createHomeSection({
         id: 'new_manga',
         title: 'New Manga',
         view_more: false,
-    }];
+    })
+];
 exports.HOME_REQUESTS = [
     {
-        request: {
+        request: createRequestObject({
             url: exports.BASE_DOMAIN,
             method: exports.METHOD,
             headers: {}
-        },
+        }),
         sectionIds: ['featured', 'popular', 'new_manga']
     }, {
-        request: {
+        request: createRequestObject({
             url: `${exports.BASE_DOMAIN}/block_refresh/showmanga/lastest_list`,
             method: exports.METHOD,
             headers: {
                 'x-requested-with': 'XMLHttpRequest'
             }
-        },
+        }),
         sectionIds: ['latest']
     }
 ];
