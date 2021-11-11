@@ -2492,13 +2492,36 @@ class MangaSail extends paperback_extensions_common_1.Source {
             return (0, MangaSailParser_1.parseChapterDetails)($, mangaId, chapterId);
         });
     }
+    getHomePageSections(sectionCallback) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // early call sectionCallback to create empty sections page & return sections data 
+            const sections = MangaSailHelper_1.HOME_SECTIONS.reduce((acc, current) => {
+                const homeSection = createHomeSection(current);
+                sectionCallback(homeSection);
+                return Object.assign(Object.assign({}, acc), { [current.id]: homeSection });
+            }, {});
+            // fetch home section contents & assign it to sections
+            const promises = [];
+            MangaSailHelper_1.HOME_REQUESTS.forEach(data => {
+                const { request, sectionIds } = data;
+                promises.push(this.requestManager.schedule(request, 1).then(res => {
+                    const $ = this.cheerio.load(res.data);
+                    sectionIds.forEach(id => {
+                        sections[id].items = (0, MangaSailParser_1.parseHomeSectionItems)($, id);
+                    });
+                }));
+            });
+            yield Promise.all(promises);
+        });
+    }
 }
 exports.MangaSail = MangaSail;
 
 },{"./MangaSailHelper":51,"./MangaSailInterceptor":52,"./MangaSailParser":53,"./interceptors":56,"paperback-extensions-common":7}],51:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mangaDetailFieldsMapper = exports.HEADER_REF_DETAILS_KEY = exports.HEADER_REF_SEARCH_KEY = exports.HEADERS = exports.INTERCEPT_SEARCH_IMG = exports.MANGA_DETAILS_FIELDS = exports.MANGA_DETAILS_PATH = exports.BASE_DOMAIN = exports.NAME = exports.HOMEPAGE = exports.AUTHOR = exports.DESCRIPTION = exports.METHOD = exports.VERSION = void 0;
+exports.mangaDetailFieldsMapper = exports.HOME_REQUESTS = exports.HOME_SECTIONS = exports.HEADER_REF_DETAILS_KEY = exports.HEADER_REF_SEARCH_KEY = exports.HEADERS = exports.INTERCEPT_SEARCH_IMG = exports.MANGA_DETAILS_FIELDS = exports.MANGA_DETAILS_PATH = exports.BASE_DOMAIN = exports.NAME = exports.HOMEPAGE = exports.AUTHOR = exports.DESCRIPTION = exports.METHOD = exports.VERSION = void 0;
+const paperback_extensions_common_1 = require("paperback-extensions-common");
 // Source Data
 exports.VERSION = '0.0.1';
 exports.METHOD = 'GET';
@@ -2520,6 +2543,44 @@ exports.INTERCEPT_SEARCH_IMG = 'search_image_path';
 exports.HEADERS = { 'X-Authcache': '1' };
 exports.HEADER_REF_SEARCH_KEY = 'X-ref-search';
 exports.HEADER_REF_DETAILS_KEY = 'X-ref-details';
+exports.HOME_SECTIONS = [{
+        id: 'featured',
+        title: 'Featured',
+        view_more: false,
+        type: paperback_extensions_common_1.HomeSectionType.featured,
+    }, {
+        id: 'popular',
+        title: 'Most Popular',
+        view_more: false,
+    }, {
+        id: 'latest',
+        title: 'Latest Update',
+        view_more: false,
+        type: paperback_extensions_common_1.HomeSectionType.doubleRow
+    }, {
+        id: 'new_manga',
+        title: 'New Manga',
+        view_more: false,
+    }];
+exports.HOME_REQUESTS = [
+    {
+        request: {
+            url: exports.BASE_DOMAIN,
+            method: exports.METHOD,
+            headers: {}
+        },
+        sectionIds: ['featured', 'popular', 'new_manga']
+    }, {
+        request: {
+            url: `${exports.BASE_DOMAIN}/block_refresh/showmanga/lastest_list`,
+            method: exports.METHOD,
+            headers: {
+                'x-requested-with': 'XMLHttpRequest'
+            }
+        },
+        sectionIds: ['latest']
+    }
+];
 // helper methods
 const mangaDetailFieldsMapper = (results) => {
     return results.reduce((result, field, idx) => {
@@ -2543,13 +2604,12 @@ const mangaDetailFieldsMapper = (results) => {
             default:
                 fieldKey = exports.MANGA_DETAILS_FIELDS[idx];
         }
-        result[fieldKey] = field;
-        return result;
+        return Object.assign(Object.assign({}, result), { [fieldKey]: field });
     }, {});
 };
 exports.mangaDetailFieldsMapper = mangaDetailFieldsMapper;
 
-},{}],52:[function(require,module,exports){
+},{"paperback-extensions-common":7}],52:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -2588,7 +2648,7 @@ exports.MangaSailInterceptor = MangaSailInterceptor;
 },{}],53:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseChapterDetails = exports.parseChapterList = exports.parseDetailField = exports.parseMangaData = exports.parseSearch = exports.parseChapterNumber = exports.parseNodeId = exports.generateSearch = exports.parseResponseObject = void 0;
+exports.parseHomeSectionItems = exports.parseChapterDetails = exports.parseChapterList = exports.parseDetailField = exports.parseMangaData = exports.parseSearch = exports.parseChapterNumber = exports.parseNodeId = exports.generateSearch = exports.parseResponseObject = void 0;
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const MangaSailHelper_1 = require("./MangaSailHelper");
 const parseResponseObject = (response) => {
@@ -2702,7 +2762,7 @@ const parseChapterDetails = ($, mangaId, id) => {
         return (((_a = $s.children[0]) === null || _a === void 0 ? void 0 : _a.data)
             && $s.children[0].data.includes('paths'));
     })[0];
-    const strData = (_a = $script === null || $script === void 0 ? void 0 : $script.children[0]) === null || _a === void 0 ? void 0 : _a.data;
+    const strData = (_a = $script === null || $script === void 0 ? void 0 : $script.children) === null || _a === void 0 ? void 0 : _a.first().data;
     const strPages = (_d = (_c = (_b = strData === null || strData === void 0 ? void 0 : strData.split('paths":')) === null || _b === void 0 ? void 0 : _b.pop()) === null || _c === void 0 ? void 0 : _c.split(',"count_p')) === null || _d === void 0 ? void 0 : _d.shift();
     let pages = [];
     try {
@@ -2720,6 +2780,11 @@ const parseChapterDetails = ($, mangaId, id) => {
     });
 };
 exports.parseChapterDetails = parseChapterDetails;
+const parseHomeSectionItems = ($, id) => {
+    console.log(id, $);
+    return [];
+};
+exports.parseHomeSectionItems = parseHomeSectionItems;
 
 },{"./MangaSailHelper":51,"paperback-extensions-common":7}],54:[function(require,module,exports){
 (function (Buffer){(function (){
