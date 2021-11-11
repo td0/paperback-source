@@ -118,7 +118,7 @@ export const parseChapterDetails = (
     $s.children[0]?.data
     && $s.children[0].data.includes('paths')
   ))[0]
-  const strData = $script?.children[0]?.data
+  const strData = $script?.children?.first().data
   const strPages = strData?.split('paths":')?.pop()?.split(',"count_p')?.shift()
   let pages = []
   try {
@@ -133,4 +133,12 @@ export const parseChapterDetails = (
     pages,
     longStrip: false
   })
+}
+
+export const parseHomeSectionItems = (
+  $: CheerioStatic,
+  id: string
+): MangaTile[] => {
+  console.log(id, $)
+  return []
 }
