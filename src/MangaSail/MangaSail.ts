@@ -139,18 +139,16 @@ export class MangaSail extends Source {
     return parseChapterDetails($, mangaId, chapterId)
   }
 
-  override async getHomePageSections(
-    sectionCallback: (section: HomeSection) => void
-  ): Promise<void> {
+  override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
     // early call sectionCallback to create empty sections page & return sections data 
-    const sections = HOME_SECTIONS.reduce((acc, current: HomeSection) => {
-      const homeSection = createHomeSection(current)
-      sectionCallback(homeSection)
-      return {
-        ...acc,
-        [current.id]: homeSection
-      }
-    }, {} as Record<string, HomeSection>)
+    const sections = HOME_SECTIONS
+      .reduce((acc, current: HomeSection) => {
+        sectionCallback(current)
+        return {
+          ...acc,
+          [current.id]: current
+        }
+      }, {} as Record<string, HomeSection>)
 
     // fetch home section contents & assign it to sections
     const promises: Promise<void>[] = []
@@ -161,6 +159,7 @@ export class MangaSail extends Source {
           const $ = this.cheerio.load(res.data)
           sectionIds.forEach(id => {
             (sections[id] as HomeSection).items = parseHomeSectionItems($, id)
+            sectionCallback(sections[id] as HomeSection)
           })
         })
       )
