@@ -4,6 +4,8 @@ import {
   DESCRIPTION,
   HEADERS,
   HEADER_REF_DETAILS_KEY,
+  HOME_REQUESTS,
+  HOME_SECTIONS,
   HOMEPAGE,
   MANGA_DETAILS_PATH,
   METHOD,
@@ -14,6 +16,7 @@ import {
   Chapter,
   ChapterDetails,
   ContentRating,
+  HomeSection,
   Manga,
   PagedResults,
   Request,
@@ -23,11 +26,12 @@ import {
   TagType,
 } from 'paperback-extensions-common'
 import {
+  generateSearch,
   parseChapterDetails,
   parseChapterList,
+  parseHomeSectionItems,
   parseMangaData,
   parseSearch,
-  generateSearch,
 } from './MangaSailParser'
 import { MangaSailInterceptor } from './MangaSailInterceptor'
 import { 
@@ -51,7 +55,6 @@ export const MangaSailInfo: SourceInfo = {
     }
   ]
 }
-
 
 export class MangaSail extends Source {
   stateManager = createSourceStateManager({})
@@ -134,5 +137,35 @@ export class MangaSail extends Source {
     const response = await this.requestManager.schedule(request, 1)
     const $ = this.cheerio.load(response.data, { xmlMode: false })
     return parseChapterDetails($, mangaId, chapterId)
+  }
+
+  override async getHomePageSections(
+    sectionCallback: (section: HomeSection) => void
+  ): Promise<void> {
+    // early call sectionCallback to create empty sections page & return sections data 
+    const sections = HOME_SECTIONS.reduce((acc, current: HomeSection) => {
+      const homeSection = createHomeSection(current)
+      sectionCallback(homeSection)
+      return {
+        ...acc,
+        [current.id]: homeSection
+      }
+    }, {} as Record<string, HomeSection>)
+
+    // fetch home section contents & assign it to sections
+    const promises: Promise<void>[] = []
+    HOME_REQUESTS.forEach(data => {
+      const { request, sectionIds } = data
+      promises.push(
+        this.requestManager.schedule(request, 1).then(res => {
+          const $ = this.cheerio.load(res.data)
+          sectionIds.forEach(id => {
+            (sections[id] as HomeSection).items = parseHomeSectionItems($, id)
+          })
+        })
+      )
+    })
+    
+    await Promise.all(promises)
   }
 }
