@@ -1,10 +1,5 @@
-import {
-  HomeSectionType,
-  Request
-} from 'paperback-extensions-common'
-
 // Source Data
-export const VERSION = '0.0.1'
+export const VERSION = '0.1.0'
 export const METHOD = 'GET'
 export const DESCRIPTION = 'td0\'s extension for paperback'
 export const AUTHOR = 'td0'
@@ -29,7 +24,6 @@ export const HOME_SECTIONS = [
   createHomeSection({
     id: 'featured',
     title: 'Featured',
-    type: HomeSectionType.featured,
     view_more: false,
   }),
   createHomeSection({
@@ -40,7 +34,6 @@ export const HOME_SECTIONS = [
   createHomeSection({
     id: 'latest',
     title: 'Latest Update',
-    type: HomeSectionType.doubleRow,
     view_more: false,
   }),
   createHomeSection({
@@ -52,17 +45,45 @@ export const HOME_SECTIONS = [
 export const HOME_REQUESTS = [
   {
     request: createRequestObject({
-      url: BASE_DOMAIN,
+      url: `${BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a=&r=frag/block/showmanga-hot_today&o%5Bq%5D=node`,
       method: METHOD,
-      headers: {}
+      headers: {
+        ...HEADERS,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-type': 'application/x-www-form-urlencoded',
+      }
     }),
-    sectionIds: ['featured','popular','new_manga']
+    sectionIds: ['featured']
+  }, {
+    request: createRequestObject({
+      url: `${BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a=&r=frag/block/showmanga-hot_manga&o%5Bq%5D=node`,
+      method: METHOD,
+      headers: {
+        ...HEADERS,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-type': 'application/x-www-form-urlencoded',
+      }
+    }),
+    sectionIds: ['popular']
+  }, {
+    request: createRequestObject({
+      url: `${BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a=&r=frag/block/showmanga-new_manga&o%5Bq%5D=node`,
+      method: METHOD,
+      headers: {
+        ...HEADERS,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-type': 'application/x-www-form-urlencoded',
+      }
+    }),
+    sectionIds: ['new_manga']
   }, {
     request: createRequestObject({
       url: `${BASE_DOMAIN}/block_refresh/showmanga/lastest_list`,
       method: METHOD,
       headers: {
-        'x-requested-with': 'XMLHttpRequest'
+        ...HEADERS,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-type': 'application/x-www-form-urlencoded',
       }
     }),
     sectionIds: ['latest']

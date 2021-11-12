@@ -118,7 +118,7 @@ export const parseChapterDetails = (
     $s.children[0]?.data
     && $s.children[0].data.includes('paths')
   ))[0]
-  const strData = $script?.children?.first().data
+  const strData = $script?.children?.[0].data
   const strPages = strData?.split('paths":')?.pop()?.split(',"count_p')?.shift()
   let pages = []
   try {
@@ -139,6 +139,49 @@ export const parseHomeSectionItems = (
   $: CheerioStatic,
   id: string
 ): MangaTile[] => {
-  console.log(id, $)
-  return []
+  const items: MangaTile[] = []
+  let selector = ''
+  switch(id) {
+    case 'featured':
+      selector = '#hottoday-list li'
+      $(selector).toArray().forEach(($item: CheerioStatic) => {
+        items.push(createMangaTile({
+          id: $('a', $item).first().attr('href').split('content/').pop(),
+          title: createIconText({text: $('a', $item).last().text()}),
+          image: $('a>img', $item).attr('src').replace('minicover', 'cover')
+        }))
+      })
+      break
+    case 'popular':
+      selector = '#block-showmanga-hot-manga ul#new-list>li'
+      $(selector).toArray().forEach(($item: CheerioStatic) => {
+        items.push(createMangaTile({
+          id: $('a', $item).first().attr('href').split('content/').pop(),
+          title: createIconText({text: $('.tl', $item).text()}),
+          image: $('img', $item).attr('src').replace('minicover', 'cover')
+        }))
+      })
+      break
+    case 'latest':
+      selector = 'ul#latest-list>li'
+      $(selector).toArray().forEach(($item: CheerioStatic) => {
+        items.push(createMangaTile({
+          id: $('a', $item).first().attr('href').split('content/').pop(),
+          title: createIconText({text: $('#c-list a', $item).text()}),
+          image: $('img', $item).attr('src').replace('minicover', 'cover')
+        }))
+      })
+      break
+    case 'new_manga':
+      selector = '#block-showmanga-new-manga ul#new-list>li'
+      $(selector).toArray().forEach(($item: CheerioStatic) => {
+        items.push(createMangaTile({
+          id: $('a', $item).first().attr('href').split('content/').pop(),
+          title: createIconText({text: $('.tl', $item).text()}),
+          image: $('img', $item).attr('src').replace('minicover', 'cover')
+        }))
+      })
+      break
+  }
+  return items
 }
