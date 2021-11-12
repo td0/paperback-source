@@ -45,7 +45,7 @@ export const MangaSailInfo: SourceInfo = {
   author: AUTHOR,
   description: DESCRIPTION,
   authorWebsite: HOMEPAGE,
-  contentRating: ContentRating.ADULT,
+  contentRating: ContentRating.MATURE,
   websiteBaseURL: BASE_DOMAIN,
   icon: 'icon.png',
   sourceTags: [
@@ -57,8 +57,6 @@ export const MangaSailInfo: SourceInfo = {
 }
 
 export class MangaSail extends Source {
-  stateManager = createSourceStateManager({})
-
   requestManager = createRequestManager({
     requestsPerSecond: 5,
     requestTimeout: 20000,
@@ -78,12 +76,6 @@ export class MangaSail extends Source {
       method: METHOD,
       headers: HEADERS
     })
-  }
-
-  CloudFlareError(status: unknown): void {
-    if(status == 503) {
-      throw new Error('CLOUDFLARE BYPASS ERROR:\nPlease go to Settings > Sources > <\\The name of this source\\> and press Cloudflare Bypass')
-    }
   }
 
   async getSearchResults(query: SearchRequest): Promise<PagedResults> {
@@ -139,9 +131,12 @@ export class MangaSail extends Source {
     return parseChapterDetails($, mangaId, chapterId)
   }
 
-  override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
+  override async getHomePageSections(
+    sectionCallback: (section: HomeSection) => void
+  ): Promise<void> {
     // early call sectionCallback to create empty sections page & return sections data 
     const sections = HOME_SECTIONS
+      .map(createHomeSection)
       .reduce((acc, current: HomeSection) => {
         sectionCallback(current)
         return {
@@ -153,14 +148,13 @@ export class MangaSail extends Source {
     // fetch home section contents & assign it to sections
     const promises: Promise<void>[] = []
     HOME_REQUESTS.forEach(data => {
-      const { request, sectionIds } = data
+      const request = createRequestObject(data.request)
       promises.push(
         this.requestManager.schedule(request, 1).then(res => {
           const $ = this.cheerio.load(res.data)
-          sectionIds.forEach(id => {
-            (sections[id] as HomeSection).items = parseHomeSectionItems($, id)
-            sectionCallback(sections[id] as HomeSection)
-          })
+          const id = data.sectionId;
+          (sections[id] as HomeSection).items = parseHomeSectionItems($, id)
+          sectionCallback(sections[id] as HomeSection)
         })
       )
     })
