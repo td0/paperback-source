@@ -2456,8 +2456,9 @@ class MangaSail extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${MangaSailHelper_1.MANGA_DETAILS_PATH}/${mangaId}`,
                 method: MangaSailHelper_1.METHOD,
-                headers: Object.assign(Object.assign({}, MangaSailHelper_1.HEADERS), { [MangaSailHelper_1.HEADER_REF_DETAILS_KEY]: mangaId })
+                headers: MangaSailHelper_1.HEADERS,
             });
+            request.metadata = MangaSailHelper_1.METADATA_FROM_DETAILS;
             const response = yield this.requestManager.schedule(request, 1);
             return (0, MangaSailParser_1.parseMangaData)(response);
         });
@@ -2467,8 +2468,9 @@ class MangaSail extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${MangaSailHelper_1.MANGA_DETAILS_PATH}/${mangaId}`,
                 method: MangaSailHelper_1.METHOD,
-                headers: MangaSailHelper_1.HEADERS
+                headers: MangaSailHelper_1.HEADERS,
             });
+            request.metadata = MangaSailHelper_1.METADATA_FROM_CHAPTERS;
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
             return (0, MangaSailParser_1.parseChapterList)($, mangaId);
@@ -2479,8 +2481,10 @@ class MangaSail extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${MangaSailHelper_1.MANGA_DETAILS_PATH}/${chapterId}`,
                 method: MangaSailHelper_1.METHOD,
-                headers: MangaSailHelper_1.HEADERS
+                headers: MangaSailHelper_1.HEADERS,
+                metadata: MangaSailHelper_1.METADATA_FROM_PAGES,
             });
+            request.metadata = MangaSailHelper_1.METADATA_FROM_PAGES;
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data, { xmlMode: false });
             return (0, MangaSailParser_1.parseChapterDetails)($, mangaId, chapterId);
@@ -2515,9 +2519,9 @@ exports.MangaSail = MangaSail;
 },{"./MangaSailHelper":51,"./MangaSailInterceptor":52,"./MangaSailParser":53,"./interceptors":56,"paperback-extensions-common":7}],51:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mangaDetailFieldsMapper = exports.HOME_REQUESTS = exports.HOME_SECTIONS = exports.HEADER_REF_DETAILS_KEY = exports.HEADER_REF_SEARCH_KEY = exports.HEADERS = exports.INTERCEPT_SEARCH_IMG = exports.MANGA_DETAILS_FIELDS = exports.XML_HTTP_REQUEST_PATH = exports.MANGA_DETAILS_PATH = exports.BASE_DOMAIN = exports.NAME = exports.HOMEPAGE = exports.AUTHOR = exports.DESCRIPTION = exports.METHOD = exports.VERSION = void 0;
+exports.mangaDetailFieldsMapper = exports.HOME_REQUESTS = exports.HOME_SECTIONS = exports.METADATA_FROM_PAGES = exports.METADATA_FROM_CHAPTERS = exports.METADATA_FROM_DETAILS = exports.METADATA_FROM_SEARCH = exports.HEADERS = exports.INTERCEPT_SEARCH_IMG = exports.MANGA_DETAILS_FIELDS = exports.XML_HTTP_REQUEST_PATH = exports.MANGA_DETAILS_PATH = exports.BASE_DOMAIN = exports.NAME = exports.HOMEPAGE = exports.AUTHOR = exports.DESCRIPTION = exports.METHOD = exports.VERSION = void 0;
 // Source Data
-exports.VERSION = '0.1.1';
+exports.VERSION = '0.1.2';
 exports.METHOD = 'GET';
 exports.DESCRIPTION = 'td0\'s extension for paperback';
 exports.AUTHOR = 'td0';
@@ -2536,8 +2540,10 @@ exports.MANGA_DETAILS_FIELDS = [
 ];
 exports.INTERCEPT_SEARCH_IMG = 'search_image_path';
 exports.HEADERS = { 'X-Authcache': '1' };
-exports.HEADER_REF_SEARCH_KEY = 'X-ref-search';
-exports.HEADER_REF_DETAILS_KEY = 'X-ref-details';
+exports.METADATA_FROM_SEARCH = 'X-ref-search';
+exports.METADATA_FROM_DETAILS = 'X-ref-details';
+exports.METADATA_FROM_CHAPTERS = 'X-ref-chapters';
+exports.METADATA_FROM_PAGES = 'X-ref-pages';
 exports.HOME_SECTIONS = [{
         id: 'featured',
         title: 'Featured',
@@ -2662,7 +2668,7 @@ const parseResponseObject = (response) => {
         return Object(parsed);
     }
     catch (err) {
-        console.error(err);
+        console.log(err);
         throw new Error('Error parsing object ' + err);
     }
 };
@@ -2772,7 +2778,7 @@ const parseChapterDetails = ($, mangaId, id) => {
         pages = JSON.parse(strPages);
     }
     catch (err) {
-        console.error(err);
+        console.log(err);
         throw new Error('Error parsing pages ' + err);
     }
     return createChapterDetails({
@@ -2859,17 +2865,16 @@ class MangaDetailsInterceptor {
         });
     }
     interceptResponse(response) {
-        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const { request } = response;
             // if not manga detail path, return the original response
             if (!request.url.includes(MangaSailHelper_1.MANGA_DETAILS_PATH))
                 return response;
             // if the request has Manga Detail or Search Manga ref header
-            if (((_a = request.headers) === null || _a === void 0 ? void 0 : _a[MangaSailHelper_1.HEADER_REF_DETAILS_KEY])
-                || ((_b = request.headers) === null || _b === void 0 ? void 0 : _b[MangaSailHelper_1.HEADER_REF_SEARCH_KEY])) {
+            if (request.metadata === MangaSailHelper_1.METADATA_FROM_DETAILS ||
+                request.metadata === MangaSailHelper_1.METADATA_FROM_SEARCH) {
                 const $ = this.cheerio.load(response.data);
-                const isFromSearch = !!((_c = request.headers) === null || _c === void 0 ? void 0 : _c[MangaSailHelper_1.HEADER_REF_SEARCH_KEY]);
+                const isFromSearch = request.metadata === MangaSailHelper_1.METADATA_FROM_SEARCH;
                 const fields = isFromSearch
                     ? MangaSailHelper_1.MANGA_DETAILS_FIELDS.slice(0, 1)
                     : MangaSailHelper_1.MANGA_DETAILS_FIELDS;
@@ -2898,7 +2903,7 @@ class MangaDetailsInterceptor {
                 return (0, MangaSailParser_1.parseDetailField)($, field);
             }
             catch (err) {
-                console.error(err);
+                console.log(err);
                 throw new Error((_a = err) !== null && _a !== void 0 ? _a : 'getDetailField Error');
             }
         });
@@ -2947,19 +2952,20 @@ class SearchImgInterceptor {
             try {
                 if (request.url.includes(MangaSailHelper_1.INTERCEPT_SEARCH_IMG)) {
                     const id = (_a = request.url.split(MangaSailHelper_1.INTERCEPT_SEARCH_IMG).pop()) !== null && _a !== void 0 ? _a : '';
-                    const response = yield this.requestManager()
-                        .schedule(createRequestObject({
+                    const newReq = createRequestObject({
                         url: `${MangaSailHelper_1.MANGA_DETAILS_PATH}${id}`,
                         method: MangaSailHelper_1.METHOD,
-                        headers: Object.assign(Object.assign({}, MangaSailHelper_1.HEADERS), { [MangaSailHelper_1.HEADER_REF_SEARCH_KEY]: id })
-                    }), 1);
+                        headers: MangaSailHelper_1.HEADERS
+                    });
+                    newReq.metadata = MangaSailHelper_1.METADATA_FROM_SEARCH;
+                    const response = yield this.requestManager().schedule(newReq, 1);
                     const parsedData = (0, MangaSailParser_1.parseResponseObject)(response);
                     const imgUrl = (_b = parsedData === null || parsedData === void 0 ? void 0 : parsedData.image) !== null && _b !== void 0 ? _b : '';
                     request.url = imgUrl;
                 }
             }
             catch (err) {
-                console.error(err);
+                console.log(err);
                 throw new Error((_c = err) !== null && _c !== void 0 ? _c : 'search error');
             }
             return request;
