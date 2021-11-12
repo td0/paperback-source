@@ -3,11 +3,13 @@ import {
   BASE_DOMAIN,
   DESCRIPTION,
   HEADERS,
-  HEADER_REF_DETAILS_KEY,
   HOME_REQUESTS,
   HOME_SECTIONS,
   HOMEPAGE,
   MANGA_DETAILS_PATH,
+  METADATA_FROM_CHAPTERS,
+  METADATA_FROM_DETAILS,
+  METADATA_FROM_PAGES,
   METHOD,
   NAME,
   VERSION,
@@ -97,11 +99,9 @@ export class MangaSail extends Source {
     const request = createRequestObject({
       url: `${MANGA_DETAILS_PATH}/${mangaId}`,
       method: METHOD,
-      headers: {
-        ...HEADERS,
-        [HEADER_REF_DETAILS_KEY]: mangaId
-      }
+      headers: HEADERS,
     })
+    request.metadata = METADATA_FROM_DETAILS
     const response = await this.requestManager.schedule(request, 1)
     return parseMangaData(response)
   }
@@ -110,8 +110,9 @@ export class MangaSail extends Source {
     const request = createRequestObject({
       url: `${MANGA_DETAILS_PATH}/${mangaId}`,
       method: METHOD,
-      headers: HEADERS
+      headers: HEADERS,
     })
+    request.metadata = METADATA_FROM_CHAPTERS
     const response = await this.requestManager.schedule(request, 1)
     const $ = this.cheerio.load(response.data)
     return parseChapterList($, mangaId)
@@ -124,8 +125,10 @@ export class MangaSail extends Source {
     const request = createRequestObject({
       url: `${MANGA_DETAILS_PATH}/${chapterId}`,
       method: METHOD,
-      headers: HEADERS
+      headers: HEADERS,
+      metadata: METADATA_FROM_PAGES,
     })
+    request.metadata = METADATA_FROM_PAGES
     const response = await this.requestManager.schedule(request, 1)
     const $ = this.cheerio.load(response.data, { xmlMode: false })
     return parseChapterDetails($, mangaId, chapterId)

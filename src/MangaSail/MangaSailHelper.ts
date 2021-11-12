@@ -1,5 +1,5 @@
 // Source Data
-export const VERSION = '0.1.1'
+export const VERSION = '0.1.2'
 export const METHOD = 'GET'
 export const DESCRIPTION = 'td0\'s extension for paperback'
 export const AUTHOR = 'td0'
@@ -19,8 +19,11 @@ export const MANGA_DETAILS_FIELDS = [
 ]
 export const INTERCEPT_SEARCH_IMG = 'search_image_path'
 export const HEADERS = { 'X-Authcache': '1' }
-export const HEADER_REF_SEARCH_KEY = 'X-ref-search'
-export const HEADER_REF_DETAILS_KEY = 'X-ref-details'
+export const METADATA_FROM_SEARCH = 'X-ref-search'
+export const METADATA_FROM_DETAILS = 'X-ref-details'
+export const METADATA_FROM_CHAPTERS = 'X-ref-chapters'
+export const METADATA_FROM_PAGES = 'X-ref-pages'
+
 export const HOME_SECTIONS =[{
   id: 'featured',
   title: 'Featured',

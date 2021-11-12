@@ -12,10 +12,10 @@ import {
 } from '../MangaSailParser'
 import {
   HEADERS,
-  HEADER_REF_SEARCH_KEY,
-  HEADER_REF_DETAILS_KEY,
   MANGA_DETAILS_PATH,
   MANGA_DETAILS_FIELDS,
+  METADATA_FROM_DETAILS,
+  METADATA_FROM_SEARCH,
   METHOD,
   XML_HTTP_REQUEST_PATH,
   mangaDetailFieldsMapper, 
@@ -38,11 +38,11 @@ export class MangaDetailsInterceptor implements RequestInterceptor {
     
     // if the request has Manga Detail or Search Manga ref header
     if (
-      request.headers?.[HEADER_REF_DETAILS_KEY]
-      || request.headers?.[HEADER_REF_SEARCH_KEY]
+      request.metadata === METADATA_FROM_DETAILS ||
+      request.metadata === METADATA_FROM_SEARCH
     ) {
       const $ = this.cheerio.load(response.data)
-      const isFromSearch = !!request.headers?.[HEADER_REF_SEARCH_KEY] 
+      const isFromSearch = request.metadata === METADATA_FROM_SEARCH
       const fields = isFromSearch
         ? MANGA_DETAILS_FIELDS.slice(0,1)
         : MANGA_DETAILS_FIELDS
@@ -78,7 +78,7 @@ export class MangaDetailsInterceptor implements RequestInterceptor {
       const $ = this.cheerio.load(data?.field[`${nodeId}:full:en`])
       return parseDetailField($, field)
     } catch(err: unknown) {
-      console.error(err)
+      console.log(err)
       throw new Error(err as string ?? 'getDetailField Error')
     }
   }

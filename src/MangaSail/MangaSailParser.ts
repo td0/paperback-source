@@ -17,7 +17,7 @@ export const parseResponseObject = (response: Response): Record<string, unknown>
       : response.data
     return Object(parsed)
   } catch(err: unknown) {
-    console.error(err)
+    console.log(err)
     throw new Error('Error parsing object ' + err)
   } 
 }
@@ -124,7 +124,7 @@ export const parseChapterDetails = (
   try {
     pages = JSON.parse(strPages)
   } catch(err: unknown) {
-    console.error(err)
+    console.log(err)
     throw new Error('Error parsing pages ' + err)
   } 
   return createChapterDetails({

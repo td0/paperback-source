@@ -6,9 +6,9 @@ import {
 } from 'paperback-extensions-common'
 import {
   HEADERS,
-  HEADER_REF_SEARCH_KEY,
   INTERCEPT_SEARCH_IMG,
   MANGA_DETAILS_PATH,
+  METADATA_FROM_SEARCH,
   METHOD,
 } from '../MangaSailHelper'
 import {
@@ -24,22 +24,19 @@ export class SearchImgInterceptor implements RequestInterceptor {
     try {
       if (request.url.includes(INTERCEPT_SEARCH_IMG)) {
         const id = request.url.split(INTERCEPT_SEARCH_IMG).pop() ?? ''
-        const response = await this.requestManager()
-          .schedule(createRequestObject({
-            url: `${MANGA_DETAILS_PATH}${id}`,
-            method: METHOD,
-            headers: {
-              ...HEADERS,
-              [HEADER_REF_SEARCH_KEY]: id,
-            }
-          }), 1)
-          
+        const newReq = createRequestObject({
+          url: `${MANGA_DETAILS_PATH}${id}`,
+          method: METHOD,
+          headers: HEADERS
+        })
+        newReq.metadata = METADATA_FROM_SEARCH
+        const response = await this.requestManager().schedule(newReq, 1)
         const parsedData = parseResponseObject(response)
         const imgUrl = parsedData?.image as string ?? ''
         request.url = imgUrl
       }
     } catch (err: unknown) {
-      console.error(err)
+      console.log(err)
       throw new Error(err as string ?? 'search error')
     }
     return request
