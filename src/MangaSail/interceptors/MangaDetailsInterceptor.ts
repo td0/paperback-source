@@ -10,17 +10,15 @@ import {
   parseNodeId,
   parseResponseObject,
 } from '../MangaSailParser'
-import { 
-  mangaDetailFieldsMapper
-} from '../MangaSailHelper'
 import {
-  BASE_DOMAIN,
   HEADERS,
   HEADER_REF_SEARCH_KEY,
   HEADER_REF_DETAILS_KEY,
   MANGA_DETAILS_PATH,
   MANGA_DETAILS_FIELDS,
   METHOD,
+  XML_HTTP_REQUEST_PATH,
+  mangaDetailFieldsMapper, 
 } from '../MangaSailHelper'
 
 export class MangaDetailsInterceptor implements RequestInterceptor {
@@ -67,7 +65,7 @@ export class MangaDetailsInterceptor implements RequestInterceptor {
   private async getDetailField(nodeId: string, field: string): Promise<string> {
     try {
       const request = createRequestObject({
-        url: `${BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a%5Bfield%5D%5B0%5D=${nodeId}%3Afull%3Aen&r=asm/field/node/${field}&o%5Bq%5D=node/${nodeId}&v=u91mcz`,
+        url: `${XML_HTTP_REQUEST_PATH}?a%5Bfield%5D%5B0%5D=${nodeId}%3Afull%3Aen&r=asm/field/node/${field}&o%5Bq%5D=node/${nodeId}&v=u91mcz`,
         method: METHOD,
         headers: {
           ...HEADERS,
