@@ -1,5 +1,5 @@
 // Source Data
-export const VERSION = '0.1.0'
+export const VERSION = '0.1.1'
 export const METHOD = 'GET'
 export const DESCRIPTION = 'td0\'s extension for paperback'
 export const AUTHOR = 'td0'
