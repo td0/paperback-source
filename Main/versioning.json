@@ -1,1 +1,1 @@
-{"buildTime":"2021-11-12T00:51:59.793Z","sources":[],"builtWith":{"cli":"2.0.0-alpha.10","commons":"5.0.0-alpha.4"}}
+{"buildTime":"2021-11-12T08:24:56.515Z","sources":[{"id":"MangaSail","name":"MangaSail","author":"td0","desc":"td0's extension for paperback","website":"https://github.com/td0/","contentRating":"MATURE","version":"0.1.0","icon":"icon.png","tags":[{"text":"Cloudflare","type":"danger"}],"websiteBaseURL":"https://www.mangasail.co"}],"builtWith":{"cli":"2.0.0-alpha.10","commons":"5.0.0-alpha.4"}}

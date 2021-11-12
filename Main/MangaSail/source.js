@@ -2403,7 +2403,7 @@ exports.MangaSailInfo = {
     author: MangaSailHelper_1.AUTHOR,
     description: MangaSailHelper_1.DESCRIPTION,
     authorWebsite: MangaSailHelper_1.HOMEPAGE,
-    contentRating: paperback_extensions_common_1.ContentRating.ADULT,
+    contentRating: paperback_extensions_common_1.ContentRating.MATURE,
     websiteBaseURL: MangaSailHelper_1.BASE_DOMAIN,
     icon: 'icon.png',
     sourceTags: [
@@ -2416,7 +2416,6 @@ exports.MangaSailInfo = {
 class MangaSail extends paperback_extensions_common_1.Source {
     constructor() {
         super(...arguments);
-        this.stateManager = createSourceStateManager({});
         this.requestManager = createRequestManager({
             requestsPerSecond: 5,
             requestTimeout: 20000,
@@ -2435,11 +2434,6 @@ class MangaSail extends paperback_extensions_common_1.Source {
             method: MangaSailHelper_1.METHOD,
             headers: MangaSailHelper_1.HEADERS
         });
-    }
-    CloudFlareError(status) {
-        if (status == 503) {
-            throw new Error('CLOUDFLARE BYPASS ERROR:\nPlease go to Settings > Sources > <\\The name of this source\\> and press Cloudflare Bypass');
-        }
     }
     getSearchResults(query) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -2496,6 +2490,7 @@ class MangaSail extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             // early call sectionCallback to create empty sections page & return sections data 
             const sections = MangaSailHelper_1.HOME_SECTIONS
+                .map(createHomeSection)
                 .reduce((acc, current) => {
                 sectionCallback(current);
                 return Object.assign(Object.assign({}, acc), { [current.id]: current });
@@ -2503,13 +2498,12 @@ class MangaSail extends paperback_extensions_common_1.Source {
             // fetch home section contents & assign it to sections
             const promises = [];
             MangaSailHelper_1.HOME_REQUESTS.forEach(data => {
-                const { request, sectionIds } = data;
+                const request = createRequestObject(data.request);
                 promises.push(this.requestManager.schedule(request, 1).then(res => {
                     const $ = this.cheerio.load(res.data);
-                    sectionIds.forEach(id => {
-                        sections[id].items = (0, MangaSailParser_1.parseHomeSectionItems)($, id);
-                        sectionCallback(sections[id]);
-                    });
+                    const id = data.sectionId;
+                    sections[id].items = (0, MangaSailParser_1.parseHomeSectionItems)($, id);
+                    sectionCallback(sections[id]);
                 }));
             });
             yield Promise.all(promises);
@@ -2521,7 +2515,7 @@ exports.MangaSail = MangaSail;
 },{"./MangaSailHelper":51,"./MangaSailInterceptor":52,"./MangaSailParser":53,"./interceptors":56,"paperback-extensions-common":7}],51:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mangaDetailFieldsMapper = exports.HOME_REQUESTS = exports.HOME_SECTIONS = exports.HEADER_REF_DETAILS_KEY = exports.HEADER_REF_SEARCH_KEY = exports.HEADERS = exports.INTERCEPT_SEARCH_IMG = exports.MANGA_DETAILS_FIELDS = exports.MANGA_DETAILS_PATH = exports.BASE_DOMAIN = exports.NAME = exports.HOMEPAGE = exports.AUTHOR = exports.DESCRIPTION = exports.METHOD = exports.VERSION = void 0;
+exports.mangaDetailFieldsMapper = exports.HOME_REQUESTS = exports.HOME_SECTIONS = exports.HEADER_REF_DETAILS_KEY = exports.HEADER_REF_SEARCH_KEY = exports.HEADERS = exports.INTERCEPT_SEARCH_IMG = exports.MANGA_DETAILS_FIELDS = exports.XML_HTTP_REQUEST_PATH = exports.MANGA_DETAILS_PATH = exports.BASE_DOMAIN = exports.NAME = exports.HOMEPAGE = exports.AUTHOR = exports.DESCRIPTION = exports.METHOD = exports.VERSION = void 0;
 // Source Data
 exports.VERSION = '0.1.0';
 exports.METHOD = 'GET';
@@ -2532,6 +2526,7 @@ exports.HOMEPAGE = 'https://github.com/td0/';
 exports.NAME = 'MangaSail';
 exports.BASE_DOMAIN = 'https://www.mangasail.co';
 exports.MANGA_DETAILS_PATH = `${exports.BASE_DOMAIN}/content`;
+exports.XML_HTTP_REQUEST_PATH = `${exports.BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?`;
 exports.MANGA_DETAILS_FIELDS = [
     'field_image2',
     'field_status',
@@ -2543,59 +2538,52 @@ exports.INTERCEPT_SEARCH_IMG = 'search_image_path';
 exports.HEADERS = { 'X-Authcache': '1' };
 exports.HEADER_REF_SEARCH_KEY = 'X-ref-search';
 exports.HEADER_REF_DETAILS_KEY = 'X-ref-details';
-exports.HOME_SECTIONS = [
-    createHomeSection({
+exports.HOME_SECTIONS = [{
         id: 'featured',
         title: 'Featured',
         view_more: false,
-    }),
-    createHomeSection({
+    }, {
         id: 'popular',
         title: 'Most Popular',
         view_more: false,
-    }),
-    createHomeSection({
+    }, {
         id: 'latest',
         title: 'Latest Update',
         view_more: false,
-    }),
-    createHomeSection({
+    }, {
         id: 'new_manga',
         title: 'New Manga',
         view_more: false,
-    })
-];
-exports.HOME_REQUESTS = [
-    {
-        request: createRequestObject({
-            url: `${exports.BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a=&r=frag/block/showmanga-hot_today&o%5Bq%5D=node`,
+    }];
+exports.HOME_REQUESTS = [{
+        request: {
+            url: `${exports.XML_HTTP_REQUEST_PATH}?a=&r=frag/block/showmanga-hot_today&o%5Bq%5D=node`,
             method: exports.METHOD,
             headers: Object.assign(Object.assign({}, exports.HEADERS), { 'X-Requested-With': 'XMLHttpRequest', 'Content-type': 'application/x-www-form-urlencoded' })
-        }),
-        sectionIds: ['featured']
+        },
+        sectionId: 'featured'
     }, {
-        request: createRequestObject({
-            url: `${exports.BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a=&r=frag/block/showmanga-hot_manga&o%5Bq%5D=node`,
+        request: {
+            url: `${exports.XML_HTTP_REQUEST_PATH}?a=&r=frag/block/showmanga-hot_manga&o%5Bq%5D=node`,
             method: exports.METHOD,
             headers: Object.assign(Object.assign({}, exports.HEADERS), { 'X-Requested-With': 'XMLHttpRequest', 'Content-type': 'application/x-www-form-urlencoded' })
-        }),
-        sectionIds: ['popular']
+        },
+        sectionId: 'popular'
     }, {
-        request: createRequestObject({
-            url: `${exports.BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a=&r=frag/block/showmanga-new_manga&o%5Bq%5D=node`,
+        request: {
+            url: `${exports.XML_HTTP_REQUEST_PATH}?a=&r=frag/block/showmanga-new_manga&o%5Bq%5D=node`,
             method: exports.METHOD,
             headers: Object.assign(Object.assign({}, exports.HEADERS), { 'X-Requested-With': 'XMLHttpRequest', 'Content-type': 'application/x-www-form-urlencoded' })
-        }),
-        sectionIds: ['new_manga']
+        },
+        sectionId: 'new_manga'
     }, {
-        request: createRequestObject({
+        request: {
             url: `${exports.BASE_DOMAIN}/block_refresh/showmanga/lastest_list`,
             method: exports.METHOD,
             headers: Object.assign(Object.assign({}, exports.HEADERS), { 'X-Requested-With': 'XMLHttpRequest', 'Content-type': 'application/x-www-form-urlencoded' })
-        }),
-        sectionIds: ['latest']
-    }
-];
+        },
+        sectionId: 'latest'
+    }];
 // helper methods
 const mangaDetailFieldsMapper = (results) => {
     return results.reduce((result, field, idx) => {
@@ -2860,7 +2848,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MangaDetailsInterceptor = void 0;
 const MangaSailParser_1 = require("../MangaSailParser");
 const MangaSailHelper_1 = require("../MangaSailHelper");
-const MangaSailHelper_2 = require("../MangaSailHelper");
 class MangaDetailsInterceptor {
     constructor(cheerio, requestManager) {
         this.cheerio = cheerio;
@@ -2876,16 +2863,16 @@ class MangaDetailsInterceptor {
         return __awaiter(this, void 0, void 0, function* () {
             const { request } = response;
             // if not manga detail path, return the original response
-            if (!request.url.includes(MangaSailHelper_2.MANGA_DETAILS_PATH))
+            if (!request.url.includes(MangaSailHelper_1.MANGA_DETAILS_PATH))
                 return response;
             // if the request has Manga Detail or Search Manga ref header
-            if (((_a = request.headers) === null || _a === void 0 ? void 0 : _a[MangaSailHelper_2.HEADER_REF_DETAILS_KEY])
-                || ((_b = request.headers) === null || _b === void 0 ? void 0 : _b[MangaSailHelper_2.HEADER_REF_SEARCH_KEY])) {
+            if (((_a = request.headers) === null || _a === void 0 ? void 0 : _a[MangaSailHelper_1.HEADER_REF_DETAILS_KEY])
+                || ((_b = request.headers) === null || _b === void 0 ? void 0 : _b[MangaSailHelper_1.HEADER_REF_SEARCH_KEY])) {
                 const $ = this.cheerio.load(response.data);
-                const isFromSearch = !!((_c = request.headers) === null || _c === void 0 ? void 0 : _c[MangaSailHelper_2.HEADER_REF_SEARCH_KEY]);
+                const isFromSearch = !!((_c = request.headers) === null || _c === void 0 ? void 0 : _c[MangaSailHelper_1.HEADER_REF_SEARCH_KEY]);
                 const fields = isFromSearch
-                    ? MangaSailHelper_2.MANGA_DETAILS_FIELDS.slice(0, 1)
-                    : MangaSailHelper_2.MANGA_DETAILS_FIELDS;
+                    ? MangaSailHelper_1.MANGA_DETAILS_FIELDS.slice(0, 1)
+                    : MangaSailHelper_1.MANGA_DETAILS_FIELDS;
                 const nodeId = (0, MangaSailParser_1.parseNodeId)($);
                 const results = nodeId && (yield Promise.all(fields.map((field) => (this.getDetailField(nodeId, field))))) || [];
                 response.rawData = this.generateRawMangaData(response, results, isFromSearch);
@@ -2901,9 +2888,9 @@ class MangaDetailsInterceptor {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const request = createRequestObject({
-                    url: `${MangaSailHelper_2.BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a%5Bfield%5D%5B0%5D=${nodeId}%3Afull%3Aen&r=asm/field/node/${field}&o%5Bq%5D=node/${nodeId}&v=u91mcz`,
-                    method: MangaSailHelper_2.METHOD,
-                    headers: Object.assign(Object.assign({}, MangaSailHelper_2.HEADERS), { 'X-Requested-With': 'XMLHttpRequest', 'Content-type': 'application/x-www-form-urlencoded' })
+                    url: `${MangaSailHelper_1.XML_HTTP_REQUEST_PATH}?a%5Bfield%5D%5B0%5D=${nodeId}%3Afull%3Aen&r=asm/field/node/${field}&o%5Bq%5D=node/${nodeId}&v=u91mcz`,
+                    method: MangaSailHelper_1.METHOD,
+                    headers: Object.assign(Object.assign({}, MangaSailHelper_1.HEADERS), { 'X-Requested-With': 'XMLHttpRequest', 'Content-type': 'application/x-www-form-urlencoded' })
                 });
                 const response = yield this.requestManager().schedule(request, 1);
                 const data = Object((0, MangaSailParser_1.parseResponseObject)(response));
