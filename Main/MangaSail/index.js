@@ -2522,9 +2522,8 @@ exports.MangaSail = MangaSail;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mangaDetailFieldsMapper = exports.HOME_REQUESTS = exports.HOME_SECTIONS = exports.HEADER_REF_DETAILS_KEY = exports.HEADER_REF_SEARCH_KEY = exports.HEADERS = exports.INTERCEPT_SEARCH_IMG = exports.MANGA_DETAILS_FIELDS = exports.MANGA_DETAILS_PATH = exports.BASE_DOMAIN = exports.NAME = exports.HOMEPAGE = exports.AUTHOR = exports.DESCRIPTION = exports.METHOD = exports.VERSION = void 0;
-const paperback_extensions_common_1 = require("paperback-extensions-common");
 // Source Data
-exports.VERSION = '0.0.1';
+exports.VERSION = '0.1.0';
 exports.METHOD = 'GET';
 exports.DESCRIPTION = 'td0\'s extension for paperback';
 exports.AUTHOR = 'td0';
@@ -2548,7 +2547,6 @@ exports.HOME_SECTIONS = [
     createHomeSection({
         id: 'featured',
         title: 'Featured',
-        type: paperback_extensions_common_1.HomeSectionType.featured,
         view_more: false,
     }),
     createHomeSection({
@@ -2559,7 +2557,6 @@ exports.HOME_SECTIONS = [
     createHomeSection({
         id: 'latest',
         title: 'Latest Update',
-        type: paperback_extensions_common_1.HomeSectionType.doubleRow,
         view_more: false,
     }),
     createHomeSection({
@@ -2571,18 +2568,30 @@ exports.HOME_SECTIONS = [
 exports.HOME_REQUESTS = [
     {
         request: createRequestObject({
-            url: exports.BASE_DOMAIN,
+            url: `${exports.BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a=&r=frag/block/showmanga-hot_today&o%5Bq%5D=node`,
             method: exports.METHOD,
-            headers: {}
+            headers: Object.assign(Object.assign({}, exports.HEADERS), { 'X-Requested-With': 'XMLHttpRequest', 'Content-type': 'application/x-www-form-urlencoded' })
         }),
-        sectionIds: ['featured', 'popular', 'new_manga']
+        sectionIds: ['featured']
+    }, {
+        request: createRequestObject({
+            url: `${exports.BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a=&r=frag/block/showmanga-hot_manga&o%5Bq%5D=node`,
+            method: exports.METHOD,
+            headers: Object.assign(Object.assign({}, exports.HEADERS), { 'X-Requested-With': 'XMLHttpRequest', 'Content-type': 'application/x-www-form-urlencoded' })
+        }),
+        sectionIds: ['popular']
+    }, {
+        request: createRequestObject({
+            url: `${exports.BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a=&r=frag/block/showmanga-new_manga&o%5Bq%5D=node`,
+            method: exports.METHOD,
+            headers: Object.assign(Object.assign({}, exports.HEADERS), { 'X-Requested-With': 'XMLHttpRequest', 'Content-type': 'application/x-www-form-urlencoded' })
+        }),
+        sectionIds: ['new_manga']
     }, {
         request: createRequestObject({
             url: `${exports.BASE_DOMAIN}/block_refresh/showmanga/lastest_list`,
             method: exports.METHOD,
-            headers: {
-                'x-requested-with': 'XMLHttpRequest'
-            }
+            headers: Object.assign(Object.assign({}, exports.HEADERS), { 'X-Requested-With': 'XMLHttpRequest', 'Content-type': 'application/x-www-form-urlencoded' })
         }),
         sectionIds: ['latest']
     }
@@ -2615,7 +2624,7 @@ const mangaDetailFieldsMapper = (results) => {
 };
 exports.mangaDetailFieldsMapper = mangaDetailFieldsMapper;
 
-},{"paperback-extensions-common":7}],52:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -2768,7 +2777,7 @@ const parseChapterDetails = ($, mangaId, id) => {
         return (((_a = $s.children[0]) === null || _a === void 0 ? void 0 : _a.data)
             && $s.children[0].data.includes('paths'));
     })[0];
-    const strData = (_a = $script === null || $script === void 0 ? void 0 : $script.children) === null || _a === void 0 ? void 0 : _a.first().data;
+    const strData = (_a = $script === null || $script === void 0 ? void 0 : $script.children) === null || _a === void 0 ? void 0 : _a[0].data;
     const strPages = (_d = (_c = (_b = strData === null || strData === void 0 ? void 0 : strData.split('paths":')) === null || _b === void 0 ? void 0 : _b.pop()) === null || _c === void 0 ? void 0 : _c.split(',"count_p')) === null || _d === void 0 ? void 0 : _d.shift();
     let pages = [];
     try {
@@ -2787,8 +2796,51 @@ const parseChapterDetails = ($, mangaId, id) => {
 };
 exports.parseChapterDetails = parseChapterDetails;
 const parseHomeSectionItems = ($, id) => {
-    console.log(id, $);
-    return [];
+    const items = [];
+    let selector = '';
+    switch (id) {
+        case 'featured':
+            selector = '#hottoday-list li';
+            $(selector).toArray().forEach(($item) => {
+                items.push(createMangaTile({
+                    id: $('a', $item).first().attr('href').split('content/').pop(),
+                    title: createIconText({ text: $('a', $item).last().text() }),
+                    image: $('a>img', $item).attr('src').replace('minicover', 'cover')
+                }));
+            });
+            break;
+        case 'popular':
+            selector = '#block-showmanga-hot-manga ul#new-list>li';
+            $(selector).toArray().forEach(($item) => {
+                items.push(createMangaTile({
+                    id: $('a', $item).first().attr('href').split('content/').pop(),
+                    title: createIconText({ text: $('.tl', $item).text() }),
+                    image: $('img', $item).attr('src').replace('minicover', 'cover')
+                }));
+            });
+            break;
+        case 'latest':
+            selector = 'ul#latest-list>li';
+            $(selector).toArray().forEach(($item) => {
+                items.push(createMangaTile({
+                    id: $('a', $item).first().attr('href').split('content/').pop(),
+                    title: createIconText({ text: $('#c-list a', $item).text() }),
+                    image: $('img', $item).attr('src').replace('minicover', 'cover')
+                }));
+            });
+            break;
+        case 'new_manga':
+            selector = '#block-showmanga-new-manga ul#new-list>li';
+            $(selector).toArray().forEach(($item) => {
+                items.push(createMangaTile({
+                    id: $('a', $item).first().attr('href').split('content/').pop(),
+                    title: createIconText({ text: $('.tl', $item).text() }),
+                    image: $('img', $item).attr('src').replace('minicover', 'cover')
+                }));
+            });
+            break;
+    }
+    return items;
 };
 exports.parseHomeSectionItems = parseHomeSectionItems;
 
@@ -2928,6 +2980,9 @@ class SearchImgInterceptor {
     }
     interceptResponse(response) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (response.status === 503) {
+                throw new Error('CLOUDFLARE BYPASS ERROR:\nPlease go to Settings > Sources > <\\The name of this source\\> and press Cloudflare Bypass');
+            }
             return response;
         });
     }
