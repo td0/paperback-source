@@ -45,6 +45,9 @@ export class SearchImgInterceptor implements RequestInterceptor {
     return request
   }
   async interceptResponse(response: Response): Promise<Response> {
+    if (response.status === 503) {
+      throw new Error('CLOUDFLARE BYPASS ERROR:\nPlease go to Settings > Sources > <\\The name of this source\\> and press Cloudflare Bypass')
+    }
     return response
   }
 }
