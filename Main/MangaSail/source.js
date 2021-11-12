@@ -2517,7 +2517,7 @@ exports.MangaSail = MangaSail;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mangaDetailFieldsMapper = exports.HOME_REQUESTS = exports.HOME_SECTIONS = exports.HEADER_REF_DETAILS_KEY = exports.HEADER_REF_SEARCH_KEY = exports.HEADERS = exports.INTERCEPT_SEARCH_IMG = exports.MANGA_DETAILS_FIELDS = exports.XML_HTTP_REQUEST_PATH = exports.MANGA_DETAILS_PATH = exports.BASE_DOMAIN = exports.NAME = exports.HOMEPAGE = exports.AUTHOR = exports.DESCRIPTION = exports.METHOD = exports.VERSION = void 0;
 // Source Data
-exports.VERSION = '0.1.0';
+exports.VERSION = '0.1.1';
 exports.METHOD = 'GET';
 exports.DESCRIPTION = 'td0\'s extension for paperback';
 exports.AUTHOR = 'td0';
