@@ -1,6 +1,6 @@
 {
   "name": "paperback-extensions",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "td0's extension for paperback",
   "main": "index.js",
   "scripts": {
@@ -8,8 +8,8 @@
     "build": "tsc",
     "test": "node_modules/.bin/mocha --timeout 300000 -r ts-node/register src/**/*.test.ts",
     "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test",
-    "bundle": "paperback bundle",
-    "serve": "paperback serve"
+    "bundle": "rm -rf ./bundles; paperback bundle",
+    "serve": "rm -rf ./bundles; paperback serve"
   },
   "repository": {
     "type": "git",
