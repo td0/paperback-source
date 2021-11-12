@@ -9,7 +9,7 @@ export const HOMEPAGE = 'https://github.com/td0/'
 export const NAME = 'MangaSail'
 export const BASE_DOMAIN = 'https://www.mangasail.co'
 export const MANGA_DETAILS_PATH = `${BASE_DOMAIN}/content`
-export const XML_HTTP_REQUEST_PATH = `${BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?`
+export const XML_HTTP_REQUEST_PATH = `${BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php`
 export const MANGA_DETAILS_FIELDS = [
   'field_image2',
   'field_status',
