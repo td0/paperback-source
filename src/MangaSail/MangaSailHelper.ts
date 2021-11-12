@@ -9,6 +9,7 @@ export const HOMEPAGE = 'https://github.com/td0/'
 export const NAME = 'MangaSail'
 export const BASE_DOMAIN = 'https://www.mangasail.co'
 export const MANGA_DETAILS_PATH = `${BASE_DOMAIN}/content`
+export const XML_HTTP_REQUEST_PATH = `${BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?`
 export const MANGA_DETAILS_FIELDS = [
   'field_image2',
   'field_status',
@@ -20,75 +21,69 @@ export const INTERCEPT_SEARCH_IMG = 'search_image_path'
 export const HEADERS = { 'X-Authcache': '1' }
 export const HEADER_REF_SEARCH_KEY = 'X-ref-search'
 export const HEADER_REF_DETAILS_KEY = 'X-ref-details'
-export const HOME_SECTIONS = [
-  createHomeSection({
-    id: 'featured',
-    title: 'Featured',
-    view_more: false,
-  }),
-  createHomeSection({
-    id: 'popular',
-    title: 'Most Popular',
-    view_more: false,
-  }),
-  createHomeSection({
-    id: 'latest',
-    title: 'Latest Update',
-    view_more: false,
-  }),
-  createHomeSection({
-    id: 'new_manga',
-    title: 'New Manga',
-    view_more: false,
-  })
-]
-export const HOME_REQUESTS = [
-  {
-    request: createRequestObject({
-      url: `${BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a=&r=frag/block/showmanga-hot_today&o%5Bq%5D=node`,
-      method: METHOD,
-      headers: {
-        ...HEADERS,
-        'X-Requested-With': 'XMLHttpRequest',
-        'Content-type': 'application/x-www-form-urlencoded',
-      }
-    }),
-    sectionIds: ['featured']
-  }, {
-    request: createRequestObject({
-      url: `${BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a=&r=frag/block/showmanga-hot_manga&o%5Bq%5D=node`,
-      method: METHOD,
-      headers: {
-        ...HEADERS,
-        'X-Requested-With': 'XMLHttpRequest',
-        'Content-type': 'application/x-www-form-urlencoded',
-      }
-    }),
-    sectionIds: ['popular']
-  }, {
-    request: createRequestObject({
-      url: `${BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?a=&r=frag/block/showmanga-new_manga&o%5Bq%5D=node`,
-      method: METHOD,
-      headers: {
-        ...HEADERS,
-        'X-Requested-With': 'XMLHttpRequest',
-        'Content-type': 'application/x-www-form-urlencoded',
-      }
-    }),
-    sectionIds: ['new_manga']
-  }, {
-    request: createRequestObject({
-      url: `${BASE_DOMAIN}/block_refresh/showmanga/lastest_list`,
-      method: METHOD,
-      headers: {
-        ...HEADERS,
-        'X-Requested-With': 'XMLHttpRequest',
-        'Content-type': 'application/x-www-form-urlencoded',
-      }
-    }),
-    sectionIds: ['latest']
-  }
-]
+export const HOME_SECTIONS =[{
+  id: 'featured',
+  title: 'Featured',
+  view_more: false,
+}, {
+  id: 'popular',
+  title: 'Most Popular',
+  view_more: false,
+}, {
+  id: 'latest',
+  title: 'Latest Update',
+  view_more: false,
+}, {
+  id: 'new_manga',
+  title: 'New Manga',
+  view_more: false,
+}]
+
+export const HOME_REQUESTS = [{
+  request: {
+    url: `${XML_HTTP_REQUEST_PATH}?a=&r=frag/block/showmanga-hot_today&o%5Bq%5D=node`,
+    method: METHOD,
+    headers: {
+      ...HEADERS,
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-type': 'application/x-www-form-urlencoded',
+    }
+  },
+  sectionId: 'featured'
+}, {
+  request: {
+    url: `${XML_HTTP_REQUEST_PATH}?a=&r=frag/block/showmanga-hot_manga&o%5Bq%5D=node`,
+    method: METHOD,
+    headers: {
+      ...HEADERS,
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-type': 'application/x-www-form-urlencoded',
+    }
+  },
+  sectionId: 'popular'
+}, {
+  request: {
+    url: `${XML_HTTP_REQUEST_PATH}?a=&r=frag/block/showmanga-new_manga&o%5Bq%5D=node`,
+    method: METHOD,
+    headers: {
+      ...HEADERS,
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-type': 'application/x-www-form-urlencoded',
+    }
+  },
+  sectionId: 'new_manga'
+}, {
+  request: {
+    url: `${BASE_DOMAIN}/block_refresh/showmanga/lastest_list`,
+    method: METHOD,
+    headers: {
+      ...HEADERS,
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-type': 'application/x-www-form-urlencoded',
+    }
+  },
+  sectionId: 'latest'
+}]
 
 // helper methods
 export const mangaDetailFieldsMapper = (
