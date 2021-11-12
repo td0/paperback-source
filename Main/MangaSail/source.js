@@ -2526,7 +2526,7 @@ exports.HOMEPAGE = 'https://github.com/td0/';
 exports.NAME = 'MangaSail';
 exports.BASE_DOMAIN = 'https://www.mangasail.co';
 exports.MANGA_DETAILS_PATH = `${exports.BASE_DOMAIN}/content`;
-exports.XML_HTTP_REQUEST_PATH = `${exports.BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php?`;
+exports.XML_HTTP_REQUEST_PATH = `${exports.BASE_DOMAIN}/sites/all/modules/authcache/modules/authcache_p13n/frontcontroller/authcache.php`;
 exports.MANGA_DETAILS_FIELDS = [
     'field_image2',
     'field_status',
